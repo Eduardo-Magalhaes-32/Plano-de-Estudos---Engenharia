@@ -2703,11 +2703,11 @@ function renderCalendar() {
 
 
 <!-- FIREBASE -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+<!-- Firebase Compat SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyDZgz4Y2D71-KoE-uzSbqBw8t9jxSQEFr8",
     authDomain: "plano-de-estudos---engenharia.firebaseapp.com",
@@ -2717,67 +2717,49 @@ function renderCalendar() {
     appId: "1:1001925913207:web:b1bae3bd6bd81a6eef7472"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const provider = new firebase.auth.GoogleAuthProvider();
 
-  // Expõe funções globalmente
-  window.loginGoogle = async () => {
-    try {
-      await signInWithRedirect(auth, provider);
-    } catch(e) {
-      alert('Erro ao fazer login: ' + e.message);
-    }
-  };
+  function loginGoogle() {
+    auth.signInWithRedirect(provider);
+  }
 
-  // Captura resultado do redirect
-  getRedirectResult(auth).catch(e => console.error(e));
+  function logoutGoogle() {
+    auth.signOut();
+  }
 
-  window.logoutGoogle = async () => {
-    await signOut(auth);
-  };
-
-  // Salvar progresso no Firestore
   async function salvarProgresso(uid) {
     const dados = localStorage.getItem('progresso_fuvest');
     if (!dados) return;
-    await setDoc(doc(db, 'usuarios', uid), { progresso: dados }, { merge: true });
+    await db.collection('usuarios').doc(uid).set({ progresso: dados }, { merge: true });
   }
 
-  // Carregar progresso do Firestore
   async function carregarProgresso(uid) {
-    const snap = await getDoc(doc(db, 'usuarios', uid));
-    if (snap.exists() && snap.data().progresso) {
+    const snap = await db.collection('usuarios').doc(uid).get();
+    if (snap.exists && snap.data().progresso) {
       localStorage.setItem('progresso_fuvest', snap.data().progresso);
     }
   }
 
-  // Monitora estado de autenticação
-  onAuthStateChanged(auth, async (user) => {
+  auth.getRedirectResult().catch(e => console.error(e));
+
+  auth.onAuthStateChanged(async (user) => {
     const overlay = document.getElementById('auth-overlay');
     const navUser = document.getElementById('nav-user');
     const navAvatar = document.getElementById('nav-avatar');
     const navName = document.getElementById('nav-user-name');
 
     if (user) {
-      // Logado
       overlay.classList.add('hidden');
       navUser.style.display = 'flex';
       navAvatar.src = user.photoURL || '';
-      navName.textContent = user.displayName?.split(' ')[0] || 'Usuário';
-
-      // Carrega progresso da nuvem e salva periodicamente
+      navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
       await carregarProgresso(user.uid);
-      
-      // Salva automaticamente a cada 30 segundos
       setInterval(() => salvarProgresso(user.uid), 30000);
-
-      // Salva quando fechar a página
       window.addEventListener('beforeunload', () => salvarProgresso(user.uid));
-
     } else {
-      // Deslogado
       overlay.classList.remove('hidden');
       navUser.style.display = 'none';
     }
