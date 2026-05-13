@@ -691,35 +691,254 @@ footer { padding: 48px 80px; border-top: 1px solid var(--border); display: flex;
   margin-left: 8px;
 }
 
-/* DESCANSO POR DIA */
-.day-rest-grid {
+/* DESCANSO POR DIA (legacy kept for compat) */
+.day-rest-grid { display:flex;gap:8px;flex-wrap:wrap;margin-top:8px; }
+.day-rest-btn { padding:6px 14px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:var(--font-b);font-size:12px;cursor:pointer;transition:all .2s; }
+.day-rest-btn.active { background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.25);color:var(--text); }
+.day-rest-btn.rest-on { background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:var(--muted2);text-decoration:line-through; }
+
+/* ═══ CONFIG TABS ═══ */
+.cfg-tabs {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
 }
-.day-rest-btn {
-  padding: 6px 14px;
+.cfg-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--muted2);
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 13px 8px;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .03em;
+  border-bottom: 2px solid transparent;
+}
+.cfg-tab:hover { color: var(--muted); background: rgba(255,255,255,.03); }
+.cfg-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(108,143,255,.06); }
+
+.cfg-tab-panel {
+  display: none;
+  padding: 22px 24px;
+}
+.cfg-tab-panel.active { display: block; }
+
+/* ═══ SLIDER DE BLOCOS ═══ */
+.cfg-slider-wrap { position:relative; width:240px; padding-bottom:22px; }
+.cfg-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--border2);
+  outline: none;
+  cursor: pointer;
+}
+.cfg-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(108,143,255,.25);
+  transition: box-shadow .2s;
+}
+.cfg-range::-webkit-slider-thumb:hover { box-shadow: 0 0 0 6px rgba(108,143,255,.3); }
+.cfg-range-bubble {
+  position: absolute;
+  top: -28px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  transform: translateX(-50%);
+  transition: left .1s;
+  white-space: nowrap;
+}
+.cfg-range-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--accent);
+  border-bottom: none;
+}
+.cfg-range-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted2);
+}
+.cfg-range-track { position: relative; height: 0; }
+
+/* ═══ BOTÃO SECUNDÁRIO ═══ */
+.cfg-btn-secondary {
+  background: rgba(108,143,255,.12);
+  border: 1px solid rgba(108,143,255,.25);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all .2s;
+  margin-top: 18px;
+}
+.cfg-btn-secondary:hover { background: rgba(108,143,255,.2); }
+
+/* ═══ SELECT ═══ */
+.cfg-select {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-b);
+  font-size: 13px;
+  padding: 7px 12px;
+  outline: none;
+  cursor: pointer;
+}
+.cfg-select:focus { border-color: var(--accent); }
+
+/* ═══ DAY MODE GRID ═══ */
+.day-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.day-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.day-mode-name {
+  font-family: var(--font-b);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.day-mode-btn {
+  width: 100%;
+  padding: 6px 4px;
   border-radius: 8px;
   border: 1px solid var(--border2);
   background: transparent;
-  color: var(--muted);
+  color: var(--muted2);
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  line-height: 1.3;
+}
+.day-mode-btn:hover { border-color: rgba(255,255,255,.2); color: var(--muted); }
+.day-mode-btn.selected-normal { background: rgba(108,143,255,.18); border-color: rgba(108,143,255,.4); color: var(--accent); }
+.day-mode-btn.selected-leve { background: rgba(52,211,153,.15); border-color: rgba(52,211,153,.35); color: var(--qui); }
+.day-mode-btn.selected-parcial { background: rgba(251,191,36,.12); border-color: rgba(251,191,36,.3); color: var(--gold); }
+.day-mode-btn.selected-total { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); color: var(--muted2); }
+.day-mode-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--muted2);
+  margin-top: 4px;
+}
+.dml-dot { display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px; }
+
+/* ═══ CALCULADORA ═══ */
+.calc-combos-grid { display:grid;gap:10px;margin-top:4px; }
+.calc-combo-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   cursor: pointer;
   transition: all .2s;
 }
-.day-rest-btn.active {
-  background: rgba(255,255,255,.06);
-  border-color: rgba(255,255,255,.25);
-  color: var(--text);
+.calc-combo-card:hover { border-color: var(--accent); background: rgba(108,143,255,.07); }
+.calc-combo-card.recomendado { border-color: rgba(52,211,153,.4); background: rgba(52,211,153,.06); }
+.calc-combo-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 99px;
+  letter-spacing: .05em;
+  white-space: nowrap;
 }
-.day-rest-btn.rest-on {
-  background: rgba(255,255,255,.04);
-  border-color: rgba(255,255,255,.1);
+.badge-rec { background: rgba(52,211,153,.15); color: var(--qui); }
+.badge-pos { background: rgba(108,143,255,.12); color: var(--accent); }
+.calc-combo-info { flex: 1; }
+.calc-combo-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.calc-combo-sub { font-size: 11px; color: var(--muted2); }
+.calc-combo-use { font-size: 11px; color: var(--accent); font-weight: 600; padding: 5px 12px; border-radius: 6px; border: 1px solid rgba(108,143,255,.3); background: transparent; cursor: pointer; transition: all .2s; }
+.calc-combo-use:hover { background: rgba(108,143,255,.15); }
+.pomo-sugest-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px; }
+.pomo-sugest-card {
+  background: rgba(251,191,36,.06);
+  border: 1px solid rgba(251,191,36,.18);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.pomo-sugest-card:hover { background: rgba(251,191,36,.12); border-color: rgba(251,191,36,.35); }
+.pomo-sugest-card.melhor { border-color: rgba(52,211,153,.4); background: rgba(52,211,153,.07); }
+.pomo-sugest-title { font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+.pomo-sugest-card.melhor .pomo-sugest-title { color: var(--qui); }
+.pomo-sugest-sub { font-size: 11px; color: var(--muted2); line-height: 1.5; }
+
+/* ═══ TIMELINE VISUAL ═══ */
+.timeline-wrap { display:flex;flex-direction:column;gap:6px; }
+.timeline-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.timeline-time {
+  font-family: var(--font-b);
+  font-size: 11px;
   color: var(--muted2);
-  text-decoration: line-through;
+  width: 80px;
+  text-align: right;
+  flex-shrink: 0;
 }
+.timeline-bar {
+  flex: 1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.timeline-bar.estudo { background: rgba(108,143,255,.18); border: 1px solid rgba(108,143,255,.3); color: var(--accent); }
+.timeline-bar.pausa { background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.1); color: var(--muted2); font-weight: 400; font-size: 11px; }
+.timeline-bar.total { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.25); color: var(--qui); margin-top: 4px; }
+.timeline-dur { font-size: 11px; opacity: .7; }
 </style>
 </head>
 <body>
@@ -1001,46 +1220,106 @@ footer { padding: 48px 80px; border-top: 1px solid var(--border); display: flex;
   <div class="s-tag">Semana típica</div>
   <h2 class="s-title reveal">Cronograma semanal</h2>
   <p class="s-desc reveal">Distribuição das 27h semanais fora do cursinho — <b>5 blocos de 50min por dia</b> (4h30 de estudo + 40min de intervalos de 10min). As matérias alternam a cada semana. <b>Arraste qualquer célula para trocar com outra.</b> Perto de simulado, o domingo vira revisão intensiva automaticamente.</p>
-  <div class="study-config-bar" id="study-config-bar">
-    <div>
-      <h4>⚙️ Configurar sessão de estudos</h4>
-      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;">
+  <!-- ═══ PAINEL DE CONFIGURAÇÃO EXPANDIDO ═══ -->
+  <div class="study-config-bar" id="study-config-bar" style="flex-direction:column;gap:0;padding:0;overflow:hidden;">
+
+    <!-- Abas -->
+    <div class="cfg-tabs">
+      <button class="cfg-tab active" onclick="switchCfgTab('blocos',this)">⚡ Blocos</button>
+      <button class="cfg-tab" onclick="switchCfgTab('descanso',this)">🌙 Descanso</button>
+      <button class="cfg-tab" onclick="switchCfgTab('calculadora',this)">🧮 Calculadora</button>
+      <button class="cfg-tab" onclick="switchCfgTab('visual',this)">📊 Visualização</button>
+    </div>
+
+    <!-- TAB 1: BLOCOS -->
+    <div class="cfg-tab-panel active" id="cfg-panel-blocos">
+      <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;">
+
         <div class="cfg-group">
-          <span class="cfg-label">Matérias por dia</span>
-          <input class="cfg-input" type="number" id="cfg-materias" min="1" max="5" value="3">
+          <span class="cfg-label">Blocos por dia</span>
+          <div class="cfg-slider-wrap">
+            <input class="cfg-range" type="range" id="cfg-blocos" min="1" max="8" value="5" oninput="onBlocosChange(this.value)">
+            <div class="cfg-range-track">
+              <span id="cfg-blocos-val" class="cfg-range-bubble">5</span>
+            </div>
+            <div class="cfg-range-labels"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
+          </div>
         </div>
+
         <div class="cfg-group">
           <span class="cfg-label">Tempo total (horas)</span>
-          <input class="cfg-input" type="number" id="cfg-horas" min="1" max="12" step="0.5" value="4.5">
+          <input class="cfg-input" type="number" id="cfg-horas" min="0.5" max="12" step="0.5" value="4.5">
+        </div>
+
+        <div class="cfg-group">
+          <span class="cfg-label">Horário de início</span>
+          <input class="cfg-input" type="time" id="cfg-inicio" value="09:00" style="width:110px;">
+        </div>
+
+        <div class="cfg-group">
+          <span class="cfg-label">Método de pausa</span>
+          <select class="cfg-input cfg-select" id="cfg-metodo" onchange="onMetodoChange(this.value)" style="width:170px;">
+            <option value="pomodoro_classico">🍅 Pomodoro Clássico (25+5)</option>
+            <option value="pomodoro_intermediario" selected>🍅 Pomodoro Médio (50+10)</option>
+            <option value="pomodoro_profundo">🍅 Pomodoro Profundo (90+20)</option>
+            <option value="personalizado">⚙️ Personalizado</option>
+          </select>
+        </div>
+
+        <div class="cfg-group" id="cfg-intervalo-group">
+          <span class="cfg-label">Intervalo (min)</span>
+          <input class="cfg-input" type="number" id="cfg-intervalo" min="0" max="60" value="10">
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <button class="cfg-apply" onclick="aplicarConfiguracoes()">Aplicar</button>
+          <button class="cfg-btn-secondary" onclick="gerarMelhorPlano()">✨ Gerar melhor plano</button>
+        </div>
+      </div>
+
+      <div class="cfg-result" id="cfg-result" style="margin-top:16px;">
+        <b>5 blocos × 50min</b> + 10min de intervalo = <b>4h30 total</b><br>
+        <span id="cfg-pomodoro-label">🍅 Pomodoro Médio ativo</span>
+      </div>
+    </div>
+
+    <!-- TAB 2: DESCANSO -->
+    <div class="cfg-tab-panel" id="cfg-panel-descanso">
+      <div style="margin-bottom:14px;font-size:12px;color:var(--muted2);">Configure o tipo de cada dia da semana. Isso afeta como os blocos são distribuídos no cronograma.</div>
+      <div class="day-mode-grid" id="day-mode-grid">
+        <!-- Gerado por JS -->
+      </div>
+      <div class="day-mode-legend">
+        <span><span class="dml-dot" style="background:var(--accent)"></span>Estudo normal</span>
+        <span><span class="dml-dot" style="background:var(--qui)"></span>Revisão leve</span>
+        <span><span class="dml-dot" style="background:var(--gold)"></span>Descanso parcial</span>
+        <span><span class="dml-dot" style="background:rgba(255,255,255,.15)"></span>Descanso total</span>
+      </div>
+    </div>
+
+    <!-- TAB 3: CALCULADORA -->
+    <div class="cfg-tab-panel" id="cfg-panel-calculadora">
+      <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;margin-bottom:18px;">
+        <div class="cfg-group">
+          <span class="cfg-label">Blocos</span>
+          <input class="cfg-input" type="number" id="calc-blocos" min="1" max="8" value="3" style="width:70px;">
         </div>
         <div class="cfg-group">
-          <span class="cfg-label" style="display:flex;align-items:center;gap:6px;">
-            <input type="checkbox" id="cfg-pomodoro" checked>
-            Modo Pomodoro
-          </span>
-          <span class="cfg-label" style="color:var(--muted2)">Intervalo entre blocos (min)</span>
-          <input class="cfg-input" type="number" id="cfg-intervalo" min="5" max="30" value="10">
+          <span class="cfg-label">Tempo total (h)</span>
+          <input class="cfg-input" type="number" id="calc-horas" min="0.5" max="12" step="0.5" value="4.5">
         </div>
-        <button class="cfg-apply" onclick="aplicarConfiguracoes()">Aplicar</button>
-        <div class="cfg-result" id="cfg-result">
-          <b>3 matérias × 1h20</b> + 10min de intervalo = <b>4h30 total</b><br>
-          <span id="cfg-pomodoro-label">🍅 Pomodoro ativo</span>
-        </div>
+        <button class="cfg-apply" onclick="calcularCombinacoes()">Calcular combinações</button>
       </div>
+      <div id="calc-sugestoes-pomodoro" style="margin-bottom:16px;"></div>
+      <div id="calc-combinacoes"></div>
     </div>
-    <div style="border-left:1px solid var(--border);padding-left:20px;min-width:220px;">
-      <h4>🌙 Dias de descanso</h4>
-      <div class="day-rest-grid" id="day-rest-grid">
-        <button class="day-rest-btn" data-dow="1" onclick="toggleRestDay(1)">Seg</button>
-        <button class="day-rest-btn" data-dow="2" onclick="toggleRestDay(2)">Ter</button>
-        <button class="day-rest-btn" data-dow="3" onclick="toggleRestDay(3)">Qua</button>
-        <button class="day-rest-btn" data-dow="4" onclick="toggleRestDay(4)">Qui</button>
-        <button class="day-rest-btn" data-dow="5" onclick="toggleRestDay(5)">Sex</button>
-        <button class="day-rest-btn" data-dow="6" onclick="toggleRestDay(6)">Sáb</button>
-        <button class="day-rest-btn rest-on" data-dow="0" onclick="toggleRestDay(0)">Dom</button>
-      </div>
-      <div style="font-size:11px;color:var(--muted2);margin-top:8px;">Clique para marcar/desmarcar dias de descanso</div>
+
+    <!-- TAB 4: VISUAL -->
+    <div class="cfg-tab-panel" id="cfg-panel-visual">
+      <div style="margin-bottom:12px;font-size:12px;color:var(--muted2);">Rotina visual do dia com horários reais de cada bloco e intervalo.</div>
+      <div id="visual-timeline"></div>
     </div>
+
   </div>
   <div class="week-table reveal" id="week-table-wrap">
     <div class="week-days">
@@ -2419,7 +2698,10 @@ const PRIORITY_COLOR = {
 };
 
 // ═══════════════════════════════════════════════
-// WEEK TABLE — 5 blocos/dia, drag-and-drop swap, revisão = só frente
+// ─── DEFAULT_DAY_MODES (usado por renderWeekTable antes do init) ────────────
+const DEFAULT_DAY_MODES = { 0:'total',1:'normal',2:'normal',3:'normal',4:'normal',5:'normal',6:'leve' };
+
+// WEEK TABLE — blocos dinâmicos/dia, drag-and-drop swap, revisão = só frente
 // ═══════════════════════════════════════════════
 
 // State: user swap overrides (persisted)
@@ -2499,8 +2781,9 @@ function renderWeekTable() {
   }
   alertEl.innerHTML = weekBadge + simAlert;
 
-  // ── Respeita dias de descanso configurados ───────────────────────────────
+  // ── Respeita modos de dia configurados ──────────────────────────────────
   const currentRestDays = typeof restDays !== 'undefined' ? restDays : [0];
+  const currentDayModes = typeof dayModes !== 'undefined' ? dayModes : DEFAULT_DAY_MODES;
 
   // ── Define 5 blocks × 7 days ──────────────────────────────────────────────
   // Each day order: [dow=1..6, 0]
@@ -2588,18 +2871,41 @@ function renderWeekTable() {
     >${title}<div class="sub">${sub}</div></div>`;
   }
 
-  // Override rest day cells
+  // Override rest day cells — respeitando dayModes
+  const effectiveBlocos = (typeof numBlocosGlobal !== 'undefined' ? numBlocosGlobal : 5);
   for (let r = 0; r < 5; r++) {
     for (let di = 0; di < 7; di++) {
       const dow = DOW_ORDER[di];
-      if (currentRestDays.includes(dow)) {
-        grid[r][di] = B('wc-des', '😴 Descanso', '', dow);
+      const mode = currentDayModes[dow] || 'normal';
+      if (mode === 'total') {
+        grid[r][di] = B('wc-des', '😴 Descanso', 'total', dow);
+      } else if (mode === 'parcial' && r >= 3) {
+        // Descanso parcial: blocos 4+ viram descanso
+        grid[r][di] = B('wc-des', '☕ Descanso', 'parcial', dow);
+      } else if (mode === 'leve' && r >= 2) {
+        // Revisão leve: a partir do bloco 3 vira revisão
+        grid[r][di] = B('wc-rev', '🌿 Revisão', 'leve', dow);
       }
     }
   }
 
   let html = '';
-  for (let r = 0; r < 5; r++) {
+  for (let r = 0; r < effectiveBlocos; r++) {
+    if (r >= 5) {
+      // Blocos extras (6-8): preenche com revisão ou conteúdo genérico
+      html += `<div class="week-row"><div class="row-label">Bloco ${r+1}</div>`;
+      for (let di = 0; di < 7; di++) {
+        const dow = DOW_ORDER[di];
+        const mode = currentDayModes[dow] || 'normal';
+        const isToday = dow === todayDow;
+        const cls   = (mode === 'total') ? 'wc-des' : (mode === 'leve') ? 'wc-rev' : 'wc-rev';
+        const title = (mode === 'total') ? '😴 Descanso' : '↩ Revisão extra';
+        const sub   = (mode === 'total') ? '' : 'bloco extra';
+        html += `<div class="wc ${cls}${isToday?' today-col':''}" data-row="${r}" data-dow="${di}">${title}<div class="sub">${sub}</div></div>`;
+      }
+      html += '</div>';
+      continue;
+    }
     html += `<div class="week-row"><div class="row-label">Bloco ${r+1}</div>`;
     for (let di = 0; di < 7; di++) {
       const dow = DOW_ORDER[di];
@@ -2864,96 +3170,372 @@ function renderCalendar() {
 
 <!-- FIREBASE -->
 // ═══════════════════════════════════════════════
-// CONFIGURAÇÕES DE ESTUDO
+// CONFIGURAÇÕES DE ESTUDO — VERSÃO EXPANDIDA
 // ═══════════════════════════════════════════════
 
-// Dias de descanso: 0=Dom, 1=Seg, ..., 6=Sáb
+// ── Estado global ─────────────────────────────
 let restDays = loadData('rest_days') ? JSON.parse(loadData('rest_days')) : [0];
 
-function toggleRestDay(dow) {
-  const idx = restDays.indexOf(dow);
-  if (idx === -1) {
-    restDays.push(dow);
+// dayModes: 0=Dom..6=Sab → 'normal'|'leve'|'parcial'|'total'
+// dayModes: 0=Dom..6=Sab → 'normal'|'leve'|'parcial'|'total'
+let dayModes = loadData('day_modes') ? JSON.parse(loadData('day_modes')) : {...DEFAULT_DAY_MODES};
+
+// Número de blocos por dia (independente de matérias)
+let numBlocosGlobal = loadData('num_blocos') ? parseInt(loadData('num_blocos')) : 5;
+
+// ── Métodos Pomodoro predefinidos ─────────────
+const METODOS_POMODORO = {
+  pomodoro_classico:       { estudo: 25, pausa: 5,  label: '🍅 Pomodoro Clássico' },
+  pomodoro_intermediario:  { estudo: 50, pausa: 10, label: '🍅 Pomodoro Médio' },
+  pomodoro_profundo:       { estudo: 90, pausa: 20, label: '🍅 Pomodoro Profundo' },
+  personalizado:           { estudo: null, pausa: null, label: '⚙️ Personalizado' },
+};
+
+// ── Atualiza visual do slider ─────────────────
+function onBlocosChange(val) {
+  numBlocosGlobal = parseInt(val);
+  const bubble = document.getElementById('cfg-blocos-val');
+  const range  = document.getElementById('cfg-blocos');
+  if (!bubble || !range) return;
+  bubble.textContent = val;
+  const pct = (val - 1) / 7;
+  bubble.style.left = `calc(${pct * 100}% - ${pct * 14 - 7}px)`;
+}
+
+function onMetodoChange(val) {
+  const m = METODOS_POMODORO[val];
+  const grp = document.getElementById('cfg-intervalo-group');
+  if (val === 'personalizado') {
+    grp.style.display = '';
   } else {
-    restDays.splice(idx, 1);
+    grp.style.display = '';
+    if (m.pausa !== null) document.getElementById('cfg-intervalo').value = m.pausa;
   }
+}
+
+// ── Troca de abas ─────────────────────────────
+function switchCfgTab(name, btn) {
+  document.querySelectorAll('.cfg-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.cfg-tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const panel = document.getElementById('cfg-panel-' + name);
+  if (panel) panel.classList.add('active');
+
+  if (name === 'descanso') renderDayModeGrid();
+  if (name === 'calculadora') calcularCombinacoes();
+  if (name === 'visual') renderTimeline();
+}
+
+// ── Render Day Mode Grid ──────────────────────
+const DAY_NAMES = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const DAY_ORDER_GRID = [1,2,3,4,5,6,0]; // Seg primeiro
+const MODE_LABELS = {
+  normal:  '📚 Normal',
+  leve:    '🌿 Revisão\nleve',
+  parcial: '☕ Descanso\nparcial',
+  total:   '😴 Descanso\ntotal',
+};
+const MODE_KEYS = ['normal','leve','parcial','total'];
+
+function renderDayModeGrid() {
+  const grid = document.getElementById('day-mode-grid');
+  if (!grid) return;
+  grid.innerHTML = DAY_ORDER_GRID.map(dow => {
+    const name = DAY_NAMES[dow];
+    const currentMode = dayModes[dow] || 'normal';
+    const btns = MODE_KEYS.map(mode => {
+      const sel = currentMode === mode ? `selected-${mode}` : '';
+      return `<button class="day-mode-btn ${sel}" onclick="setDayMode(${dow},'${mode}',this)">${MODE_LABELS[mode]}</button>`;
+    }).join('');
+    return `<div class="day-mode-card"><div class="day-mode-name">${name}</div>${btns}</div>`;
+  }).join('');
+}
+
+function setDayMode(dow, mode, btn) {
+  dayModes[dow] = mode;
+  saveData('day_modes', JSON.stringify(dayModes));
+  // Atualiza classes dos botões da coluna
+  const card = btn.closest('.day-mode-card');
+  card.querySelectorAll('.day-mode-btn').forEach(b => {
+    MODE_KEYS.forEach(m => b.classList.remove('selected-'+m));
+  });
+  btn.classList.add('selected-'+mode);
+  // Sincroniza restDays com os dias de descanso total
+  restDays = Object.entries(dayModes)
+    .filter(([,m]) => m === 'total')
+    .map(([d]) => parseInt(d));
   saveData('rest_days', JSON.stringify(restDays));
-  updateRestDayButtons();
+  renderWeekTable();
+}
+
+// ── Aplicar configurações (Tab 1) ─────────────
+function aplicarConfiguracoes() {
+  const blocos   = numBlocosGlobal || parseInt(document.getElementById('cfg-blocos').value) || 5;
+  const horas    = parseFloat(document.getElementById('cfg-horas').value) || 4.5;
+  const metodo   = document.getElementById('cfg-metodo').value;
+  let   intervalo = parseInt(document.getElementById('cfg-intervalo').value) || 10;
+  const inicio   = document.getElementById('cfg-inicio').value || '09:00';
+
+  if (metodo !== 'personalizado') {
+    const m = METODOS_POMODORO[metodo];
+    if (m.pausa !== null) intervalo = m.pausa;
+  }
+
+  const totalMin   = horas * 60;
+  const tempoEstudo = Math.round((totalMin - intervalo * (blocos - 1)) / blocos);
+  const totalReal   = tempoEstudo * blocos + intervalo * (blocos - 1);
+
+  function minStr(min) {
+    const h = Math.floor(min/60), m = min%60;
+    return h > 0 ? `${h}h${m>0?m+'min':''}` : `${m}min`;
+  }
+
+  document.getElementById('cfg-result').innerHTML =
+    `<b>${blocos} bloco${blocos>1?'s':''} × ${minStr(tempoEstudo)}</b>` +
+    (intervalo > 0 ? ` + ${intervalo}min de pausa` : '') +
+    ` = <b>${minStr(totalReal)} total</b><br>` +
+    `<span id="cfg-pomodoro-label">${METODOS_POMODORO[metodo]?.label || '⏱ Personalizado'} — ${blocos} blocos de ${minStr(tempoEstudo)}</span>`;
+
+  // Salvar tudo
+  numBlocosGlobal = blocos;
+  saveData('num_blocos', blocos);
+  saveData('study_config', JSON.stringify({ blocos, horas, metodo, intervalo, inicio }));
+
+  // Atualizar nota do cronograma
+  const nota = document.querySelector('.week-note');
+  if (nota) {
+    nota.innerHTML = `<b>${blocos} blocos por dia</b> × <b>${minStr(tempoEstudo)}</b> de estudo` +
+      (intervalo > 0 ? ` + <b>${intervalo}min</b> de pausa` : '') +
+      ` = <b>${minStr(totalReal)} total</b> por dia de estudo.`;
+  }
+
+  // Atualiza tabela
+  renderWeekTable();
+  renderTimeline();
+}
+
+// ── Gerar Melhor Plano ────────────────────────
+function gerarMelhorPlano() {
+  const horas    = parseFloat(document.getElementById('cfg-horas').value) || 4.5;
+  const totalMin = horas * 60;
+
+  // Escolhe método Pomodoro ideal baseado no tempo
+  let melhorMetodo, melhorBlocos;
+  if (totalMin <= 90) {
+    melhorMetodo = 'pomodoro_classico'; melhorBlocos = Math.max(1, Math.round(totalMin / 30));
+  } else if (totalMin <= 210) {
+    melhorMetodo = 'pomodoro_intermediario'; melhorBlocos = Math.max(1, Math.round(totalMin / 60));
+  } else {
+    melhorMetodo = 'pomodoro_profundo'; melhorBlocos = Math.max(1, Math.round(totalMin / 110));
+  }
+  melhorBlocos = Math.min(8, melhorBlocos);
+
+  // Aplica
+  document.getElementById('cfg-metodo').value = melhorMetodo;
+  document.getElementById('cfg-blocos').value = melhorBlocos;
+  onBlocosChange(melhorBlocos);
+  onMetodoChange(melhorMetodo);
+  aplicarConfiguracoes();
+
+  // Feedback
+  const res = document.getElementById('cfg-result');
+  const prev = res.innerHTML;
+  res.innerHTML = `✨ <b>Melhor plano gerado!</b> Método <b>${METODOS_POMODORO[melhorMetodo].label}</b> com <b>${melhorBlocos} blocos</b>.<br>` + prev;
+  setTimeout(() => { res.innerHTML = prev; }, 3000);
+}
+
+// ── Calculadora de Combinações (Tab 3) ────────
+function calcularCombinacoes() {
+  const blocos   = parseInt(document.getElementById('calc-blocos').value) || 3;
+  const horas    = parseFloat(document.getElementById('calc-horas').value) || 4.5;
+  const totalMin = horas * 60;
+
+  function minStr(min) {
+    if (min <= 0) return '—';
+    const h = Math.floor(min/60), m = min%60;
+    return h > 0 ? `${h}h${m>0?' '+m+'min':''}` : `${m}min`;
+  }
+
+  // Sugestões Pomodoro
+  const pSugest = document.getElementById('calc-sugestoes-pomodoro');
+  const pomodoroOpts = [
+    { label:'🍅 Clássico',   estudo:25, pausa:5  },
+    { label:'🍅 Médio',      estudo:50, pausa:10 },
+    { label:'🍅 Profundo',   estudo:90, pausa:20 },
+  ];
+  // Qual é o melhor?
+  let melhorIdx = 0, melhorDiff = Infinity;
+  pomodoroOpts.forEach((p, i) => {
+    const total = p.estudo * blocos + p.pausa * (blocos - 1);
+    const diff  = Math.abs(total - totalMin);
+    if (diff < melhorDiff) { melhorDiff = diff; melhorIdx = i; }
+  });
+
+  pSugest.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Sugestões Pomodoro para ${blocos} bloco${blocos>1?'s':''}</div>
+  <div class="pomo-sugest-grid">` +
+  pomodoroOpts.map((p, i) => {
+    const total = p.estudo * blocos + p.pausa * (blocos - 1);
+    const isMelhor = i === melhorIdx;
+    return `<div class="pomo-sugest-card${isMelhor?' melhor':''}" onclick="aplicarPomodoroDaCalc(${p.estudo},${p.pausa},${blocos})">
+      ${isMelhor ? '<div style="font-size:10px;font-weight:700;color:var(--qui);margin-bottom:4px;">✓ MELHOR OPÇÃO</div>' : ''}
+      <div class="pomo-sugest-title">${p.label}</div>
+      <div class="pomo-sugest-sub">${p.estudo}min estudo + ${p.pausa}min pausa<br>Total: <b>${minStr(total)}</b></div>
+    </div>`;
+  }).join('') + '</div>';
+
+  // Combinações personalizadas: varia intervalo de 0 a 30 min
+  const combos = [];
+  for (let pausa = 0; pausa <= 30; pausa += 5) {
+    const estudo = Math.round((totalMin - pausa * (blocos - 1)) / blocos);
+    if (estudo < 10) continue;
+    const totalReal = estudo * blocos + pausa * (blocos - 1);
+    const diff = Math.abs(totalReal - totalMin);
+    if (diff > 5) continue; // aceita pequeno arredondamento
+    combos.push({ estudo, pausa, total: totalReal });
+  }
+
+  const combosEl = document.getElementById('calc-combinacoes');
+  if (combos.length === 0) {
+    combosEl.innerHTML = `<div style="font-size:12px;color:var(--muted2);padding:12px 0;">Nenhuma combinação exata encontrada. Ajuste o número de blocos ou horas.</div>`;
+    return;
+  }
+
+  combosEl.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Distribuições válidas — ${blocos} blocos em ${minStr(totalMin)}</div>
+  <div class="calc-combos-grid">` +
+  combos.map((c, i) => {
+    const isRec = c.pausa === 10 || c.pausa === 5;
+    return `<div class="calc-combo-card${isRec?' recomendado':''}">
+      <span class="calc-combo-badge ${isRec?'badge-rec':'badge-pos'}">${isRec?'★ IDEAL':'#'+(i+1)}</span>
+      <div class="calc-combo-info">
+        <div class="calc-combo-title">${blocos}× ${minStr(c.estudo)} estudo${c.pausa>0?' + '+c.pausa+'min pausa':''}</div>
+        <div class="calc-combo-sub">Total real: ${minStr(c.total)} · Blocos encadeados</div>
+      </div>
+      <button class="calc-combo-use" onclick="usarCombo(${c.estudo},${c.pausa},${blocos})">Usar este</button>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function usarCombo(estudo, pausa, blocos) {
+  document.getElementById('cfg-blocos').value = blocos;
+  onBlocosChange(blocos);
+  document.getElementById('cfg-intervalo').value = pausa;
+  document.getElementById('cfg-metodo').value = 'personalizado';
+  const totalMin = estudo * blocos + pausa * (blocos - 1);
+  document.getElementById('cfg-horas').value = (totalMin / 60).toFixed(1);
+  aplicarConfiguracoes();
+  switchCfgTab('blocos', document.querySelector('.cfg-tab'));
+}
+
+function aplicarPomodoroDaCalc(estudo, pausa, blocos) {
+  document.getElementById('cfg-blocos').value = blocos;
+  onBlocosChange(blocos);
+  document.getElementById('cfg-intervalo').value = pausa;
+  document.getElementById('cfg-metodo').value = 'personalizado';
+  const totalMin = estudo * blocos + pausa * (blocos - 1);
+  document.getElementById('cfg-horas').value = (totalMin / 60).toFixed(1);
+  aplicarConfiguracoes();
+}
+
+// ── Timeline Visual (Tab 4) ───────────────────
+function renderTimeline() {
+  const el = document.getElementById('visual-timeline');
+  if (!el) return;
+
+  const cfg    = JSON.parse(loadData('study_config') || '{}');
+  const blocos = numBlocosGlobal || cfg.blocos || 5;
+  const horas  = cfg.horas || 4.5;
+  const pausa  = cfg.intervalo !== undefined ? cfg.intervalo : 10;
+  const inicio = cfg.inicio || '09:00';
+
+  const totalMin = horas * 60;
+  const estudo   = Math.round((totalMin - pausa * (blocos - 1)) / blocos);
+
+  function minStr(min) {
+    const h = Math.floor(min/60), m = min%60;
+    return h > 0 ? `${h}h${m>0?m+'min':''}` : `${m}min`;
+  }
+  function addMin(timeStr, mins) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const total  = h * 60 + m + mins;
+    return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
+  }
+
+  let html = '<div class="timeline-wrap">';
+  let cur  = inicio;
+
+  for (let i = 0; i < blocos; i++) {
+    const fim = addMin(cur, estudo);
+    html += `<div class="timeline-block">
+      <div class="timeline-time">${cur} → ${fim}</div>
+      <div class="timeline-bar estudo">
+        <span>📚 Bloco ${i+1}</span>
+        <span class="timeline-dur">${minStr(estudo)}</span>
+      </div>
+    </div>`;
+    cur = fim;
+    if (i < blocos - 1 && pausa > 0) {
+      const fimPausa = addMin(cur, pausa);
+      html += `<div class="timeline-block">
+        <div class="timeline-time">${cur} → ${fimPausa}</div>
+        <div class="timeline-bar pausa">
+          <span>☕ Pausa ${i+1}</span>
+          <span class="timeline-dur">${pausa}min</span>
+        </div>
+      </div>`;
+      cur = fimPausa;
+    }
+  }
+
+  const totalReal = estudo * blocos + pausa * (blocos - 1);
+  html += `<div class="timeline-block" style="margin-top:8px;">
+    <div class="timeline-time" style="color:var(--qui);font-weight:700;">Total</div>
+    <div class="timeline-bar total">
+      <span>✅ ${blocos} blocos concluídos</span>
+      <span class="timeline-dur">${minStr(totalReal)} de estudo</span>
+    </div>
+  </div>`;
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── toggleRestDay (compat com função antiga) ──
+function toggleRestDay(dow) {
+  const currentMode = dayModes[dow] || 'normal';
+  const newMode     = currentMode === 'total' ? 'normal' : 'total';
+  dayModes[dow]     = newMode;
+  saveData('day_modes', JSON.stringify(dayModes));
+  restDays = Object.entries(dayModes).filter(([,m]) => m === 'total').map(([d]) => parseInt(d));
+  saveData('rest_days', JSON.stringify(restDays));
   renderWeekTable();
 }
 
 function updateRestDayButtons() {
-  document.querySelectorAll('.day-rest-btn').forEach(btn => {
-    const dow = parseInt(btn.dataset.dow);
-    if (restDays.includes(dow)) {
-      btn.classList.add('rest-on');
-    } else {
-      btn.classList.remove('rest-on');
-    }
-  });
+  // Compat — não faz nada na nova UI; a renderDayModeGrid substitui
 }
 
-function aplicarConfiguracoes() {
-  const materias = parseInt(document.getElementById('cfg-materias').value) || 3;
-  const horas = parseFloat(document.getElementById('cfg-horas').value) || 4.5;
-  const pomodoro = document.getElementById('cfg-pomodoro').checked;
-  const intervalo = parseInt(document.getElementById('cfg-intervalo').value) || 10;
-
-  const totalMin = horas * 60;
-  let tempoPorMateria, tempoEstudo, numBlocos;
-
-  if (pomodoro) {
-    // Tempo total = (estudo × n) + (intervalo × (n-1))
-    // totalMin = n × tempoEstudo + (n-1) × intervalo
-    // tempoEstudo = (totalMin - intervalo*(materias-1)) / materias
-    tempoEstudo = Math.round((totalMin - intervalo * (materias - 1)) / materias);
-    numBlocos = materias;
-  } else {
-    tempoEstudo = Math.round(totalMin / materias);
-    numBlocos = materias;
-    intervalo = 0;
-  }
-
-  const h = Math.floor(tempoEstudo / 60);
-  const m = tempoEstudo % 60;
-  const tempoStr = h > 0 ? `${h}h${m > 0 ? m + 'min' : ''}` : `${m}min`;
-
-  const totalReal = tempoEstudo * numBlocos + intervalo * (numBlocos - 1);
-  const th = Math.floor(totalReal / 60);
-  const tm = totalReal % 60;
-  const totalStr = th > 0 ? `${th}h${tm > 0 ? tm + 'min' : ''}` : `${tm}min`;
-
-  document.getElementById('cfg-result').innerHTML =
-    `<b>${materias} matéria${materias>1?'s':''} × ${tempoStr}</b>` +
-    (pomodoro ? ` + ${intervalo}min intervalo` : '') +
-    ` = <b>${totalStr} total</b><br>` +
-    (pomodoro ? `<span id="cfg-pomodoro-label">🍅 Pomodoro ativo — ${numBlocos} blocos de ${tempoStr}</span>` : `<span id="cfg-pomodoro-label">⏱ Sessão contínua — ${numBlocos} blocos</span>`);
-
-  saveData('study_config', JSON.stringify({ materias, horas, pomodoro, intervalo }));
-
-  // Atualiza a nota no cronograma
-  const nota = document.querySelector('.week-note');
-  if (nota) {
-    nota.innerHTML = pomodoro
-      ? `<b>${materias} matérias por dia</b> × <b>${tempoStr}</b> de estudo + <b>${intervalo}min</b> de intervalo = <b>${totalStr} total</b>. 🍅 Modo Pomodoro ativo.`
-      : `<b>${materias} matérias por dia</b> × <b>${tempoStr}</b> de estudo = <b>${totalStr} total</b>. ⏱ Sessão contínua.`;
-  }
-}
-
-// Init: restore saved config and rest days
+// ── Init: restaura preferências salvas ────────
 (function initConfig() {
   const saved = loadData('study_config');
   if (saved) {
     try {
       const cfg = JSON.parse(saved);
-      document.getElementById('cfg-materias').value = cfg.materias;
-      document.getElementById('cfg-horas').value = cfg.horas;
-      document.getElementById('cfg-pomodoro').checked = cfg.pomodoro;
-      document.getElementById('cfg-intervalo').value = cfg.intervalo;
+      if (cfg.blocos) {
+        numBlocosGlobal = cfg.blocos;
+        const sldr = document.getElementById('cfg-blocos');
+        if (sldr) { sldr.value = cfg.blocos; onBlocosChange(cfg.blocos); }
+      }
+      if (cfg.horas)    document.getElementById('cfg-horas').value    = cfg.horas;
+      if (cfg.metodo)   { document.getElementById('cfg-metodo').value = cfg.metodo; onMetodoChange(cfg.metodo); }
+      if (cfg.intervalo !== undefined) document.getElementById('cfg-intervalo').value = cfg.intervalo;
+      if (cfg.inicio)   document.getElementById('cfg-inicio').value   = cfg.inicio;
       aplicarConfiguracoes();
     } catch(e) {}
+  } else {
+    // Default: init slider
+    onBlocosChange(numBlocosGlobal);
+    aplicarConfiguracoes();
   }
-  updateRestDayButtons();
 })();
 
 
