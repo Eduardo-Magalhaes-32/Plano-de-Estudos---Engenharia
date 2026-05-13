@@ -2743,31 +2743,27 @@ function renderCalendar() {
     }
   }
 
-  function mostrarUsuario(user) {
-    const overlay = document.getElementById('auth-overlay');
-    const navUser = document.getElementById('nav-user');
-    const navAvatar = document.getElementById('nav-avatar');
-    const navName = document.getElementById('nav-user-name');
-    if (user) {
-      overlay.classList.add('hidden');
-      navUser.style.display = 'flex';
-      navAvatar.src = user.photoURL || '';
-      navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
-      carregarProgresso(user.uid);
-      setInterval(() => salvarProgresso(user.uid), 30000);
-      window.addEventListener('beforeunload', () => salvarProgresso(user.uid));
-    } else {
-      overlay.classList.remove('hidden');
-      navUser.style.display = 'none';
-    }
-  }
-
   auth.getRedirectResult().then((result) => {
-    if (result && result.user) mostrarUsuario(result.user);
-  }).catch(e => console.error('Redirect error:', e));
-
-  auth.onAuthStateChanged((user) => {
-    mostrarUsuario(user);
+    // redirect result processado, agora escuta o estado
+  }).catch(e => console.error('Redirect error:', e)).finally(() => {
+    auth.onAuthStateChanged((user) => {
+      const overlay = document.getElementById('auth-overlay');
+      const navUser = document.getElementById('nav-user');
+      const navAvatar = document.getElementById('nav-avatar');
+      const navName = document.getElementById('nav-user-name');
+      if (user) {
+        overlay.classList.add('hidden');
+        navUser.style.display = 'flex';
+        navAvatar.src = user.photoURL || '';
+        navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
+        carregarProgresso(user.uid);
+        setInterval(() => salvarProgresso(user.uid), 30000);
+        window.addEventListener('beforeunload', () => salvarProgresso(user.uid));
+      } else {
+        overlay.classList.remove('hidden');
+        navUser.style.display = 'none';
+      }
+    });
   });
 </script>
 </body>
