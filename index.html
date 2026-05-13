@@ -2743,26 +2743,31 @@ function renderCalendar() {
     }
   }
 
-  auth.getRedirectResult().catch(e => console.error(e));
-
-  auth.onAuthStateChanged(async (user) => {
+  function mostrarUsuario(user) {
     const overlay = document.getElementById('auth-overlay');
     const navUser = document.getElementById('nav-user');
     const navAvatar = document.getElementById('nav-avatar');
     const navName = document.getElementById('nav-user-name');
-
     if (user) {
       overlay.classList.add('hidden');
       navUser.style.display = 'flex';
       navAvatar.src = user.photoURL || '';
       navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
-      await carregarProgresso(user.uid);
+      carregarProgresso(user.uid);
       setInterval(() => salvarProgresso(user.uid), 30000);
       window.addEventListener('beforeunload', () => salvarProgresso(user.uid));
     } else {
       overlay.classList.remove('hidden');
       navUser.style.display = 'none';
     }
+  }
+
+  auth.getRedirectResult().then((result) => {
+    if (result && result.user) mostrarUsuario(result.user);
+  }).catch(e => console.error('Redirect error:', e));
+
+  auth.onAuthStateChanged((user) => {
+    mostrarUsuario(user);
   });
 </script>
 </body>
