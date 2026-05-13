@@ -2722,8 +2722,24 @@ function renderCalendar() {
   const db = firebase.firestore();
   const provider = new firebase.auth.GoogleAuthProvider();
 
+  // Configura persistência local para manter login após redirect
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
+
+    // Verifica resultado do redirect
+    return auth.getRedirectResult();
+
+  }).then((result) => {
+    if (result && result.user) {
+      console.log('Login redirect OK:', result.user.displayName);
+    }
+  }).catch(e => {
+    console.error('Erro:', e);
+  });
+
   function loginGoogle() {
-    auth.signInWithRedirect(provider);
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
+      return auth.signInWithRedirect(provider);
+    }).catch(e => alert('Erro: ' + e.message));
   }
 
   function logoutGoogle() {
@@ -2733,37 +2749,38 @@ function renderCalendar() {
   async function salvarProgresso(uid) {
     const dados = localStorage.getItem('progresso_fuvest');
     if (!dados) return;
-    await db.collection('usuarios').doc(uid).set({ progresso: dados }, { merge: true });
+    try {
+      await db.collection('usuarios').doc(uid).set({ progresso: dados }, { merge: true });
+    } catch(e) { console.error(e); }
   }
 
   async function carregarProgresso(uid) {
-    const snap = await db.collection('usuarios').doc(uid).get();
-    if (snap.exists && snap.data().progresso) {
-      localStorage.setItem('progresso_fuvest', snap.data().progresso);
-    }
+    try {
+      const snap = await db.collection('usuarios').doc(uid).get();
+      if (snap.exists && snap.data().progresso) {
+        localStorage.setItem('progresso_fuvest', snap.data().progresso);
+      }
+    } catch(e) { console.error(e); }
   }
 
-  auth.getRedirectResult().then((result) => {
-    // redirect result processado, agora escuta o estado
-  }).catch(e => console.error('Redirect error:', e)).finally(() => {
-    auth.onAuthStateChanged((user) => {
-      const overlay = document.getElementById('auth-overlay');
-      const navUser = document.getElementById('nav-user');
-      const navAvatar = document.getElementById('nav-avatar');
-      const navName = document.getElementById('nav-user-name');
-      if (user) {
-        overlay.classList.add('hidden');
-        navUser.style.display = 'flex';
-        navAvatar.src = user.photoURL || '';
-        navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
-        carregarProgresso(user.uid);
-        setInterval(() => salvarProgresso(user.uid), 30000);
-        window.addEventListener('beforeunload', () => salvarProgresso(user.uid));
-      } else {
-        overlay.classList.remove('hidden');
-        navUser.style.display = 'none';
-      }
-    });
+  auth.onAuthStateChanged((user) => {
+    const overlay = document.getElementById('auth-overlay');
+    const navUser = document.getElementById('nav-user');
+    const navAvatar = document.getElementById('nav-avatar');
+    const navName = document.getElementById('nav-user-name');
+    if (!overlay) return;
+    if (user) {
+      overlay.classList.add('hidden');
+      navUser.style.display = 'flex';
+      navAvatar.src = user.photoURL || '';
+      navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
+      carregarProgresso(user.uid);
+      setInterval(() => salvarProgresso(user.uid), 30000);
+      window.addEventListener('beforeunload', () => salvarProgresso(user.uid));
+    } else {
+      overlay.classList.remove('hidden');
+      navUser.style.display = 'none';
+    }
   });
 </script>
 </body>
