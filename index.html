@@ -895,7 +895,7 @@ footer { padding: 48px 80px; border-top: 1px solid var(--border); display: flex;
 .calc-combo-sub { font-size: 11px; color: var(--muted2); }
 .calc-combo-use { font-size: 11px; color: var(--accent); font-weight: 600; padding: 5px 12px; border-radius: 6px; border: 1px solid rgba(108,143,255,.3); background: transparent; cursor: pointer; transition: all .2s; }
 .calc-combo-use:hover { background: rgba(108,143,255,.15); }
-.pomo-sugest-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px; }
+.pomo-sugest-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px; }
 .pomo-sugest-card {
   background: rgba(251,191,36,.06);
   border: 1px solid rgba(251,191,36,.18);
@@ -1252,18 +1252,17 @@ footer { padding: 48px 80px; border-top: 1px solid var(--border); display: flex;
         </div>
 
         <div class="cfg-group">
-          <span class="cfg-label">Horário de início</span>
-          <input class="cfg-input" type="time" id="cfg-inicio" value="09:00" style="width:110px;">
-        </div>
-
-        <div class="cfg-group">
           <span class="cfg-label">Método de pausa</span>
-          <select class="cfg-input cfg-select" id="cfg-metodo" onchange="onMetodoChange(this.value)" style="width:170px;">
-            <option value="pomodoro_classico">🍅 Pomodoro Clássico (25+5)</option>
-            <option value="pomodoro_intermediario" selected>🍅 Pomodoro Médio (50+10)</option>
-            <option value="pomodoro_profundo">🍅 Pomodoro Profundo (90+20)</option>
+          <select class="cfg-input cfg-select" id="cfg-metodo" onchange="onMetodoChange(this.value)" style="width:200px;">
+            <option value="classico">🍅 Clássico (25+5)</option>
+            <option value="medio" selected>🍅 Médio (50+10)</option>
+            <option value="sessenta">⏱ 60+10</option>
+            <option value="profundo">🔥 Profundo (90+20)</option>
+            <option value="foco_total">💎 Foco Total (120+15)</option>
+            <option value="revisao_leve">🌿 Revisão Leve (30+5)</option>
             <option value="personalizado">⚙️ Personalizado</option>
           </select>
+          <div id="cfg-metodo-desc" style="font-size:10px;color:var(--muted2);margin-top:4px;max-width:200px;line-height:1.4;">Padrão para sessões de 3h–5h diárias</div>
         </div>
 
         <div class="cfg-group" id="cfg-intervalo-group">
@@ -3169,83 +3168,100 @@ function renderCalendar() {
 </script>
 
 <!-- FIREBASE -->
+
+<script>
 // ═══════════════════════════════════════════════
-// CONFIGURAÇÕES DE ESTUDO — VERSÃO EXPANDIDA
+// CONFIGURAÇÕES DE ESTUDO — VERSÃO CORRIGIDA
 // ═══════════════════════════════════════════════
 
 // ── Estado global ─────────────────────────────
-let restDays = loadData('rest_days') ? JSON.parse(loadData('rest_days')) : [0];
+let restDays = [];
+try { restDays = JSON.parse(loadData('rest_days') || '[0]'); } catch(e) { restDays = [0]; }
 
-// dayModes: 0=Dom..6=Sab → 'normal'|'leve'|'parcial'|'total'
-// dayModes: 0=Dom..6=Sab → 'normal'|'leve'|'parcial'|'total'
-let dayModes = loadData('day_modes') ? JSON.parse(loadData('day_modes')) : {...DEFAULT_DAY_MODES};
+let dayModes = {};
+try { dayModes = JSON.parse(loadData('day_modes') || 'null') || {...DEFAULT_DAY_MODES}; } catch(e) { dayModes = {...DEFAULT_DAY_MODES}; }
 
-// Número de blocos por dia (independente de matérias)
-let numBlocosGlobal = loadData('num_blocos') ? parseInt(loadData('num_blocos')) : 5;
+let numBlocosGlobal = parseInt(loadData('num_blocos') || '5') || 5;
 
-// ── Métodos Pomodoro predefinidos ─────────────
+// ── Métodos Pomodoro expandidos ───────────────
 const METODOS_POMODORO = {
-  pomodoro_classico:       { estudo: 25, pausa: 5,  label: '🍅 Pomodoro Clássico' },
-  pomodoro_intermediario:  { estudo: 50, pausa: 10, label: '🍅 Pomodoro Médio' },
-  pomodoro_profundo:       { estudo: 90, pausa: 20, label: '🍅 Pomodoro Profundo' },
-  personalizado:           { estudo: null, pausa: null, label: '⚙️ Personalizado' },
+  classico:         { estudo: 25,  pausa: 5,  label: '🍅 Clássico (25+5)',        desc: 'Foco curto e intenso — ideal para assuntos difíceis' },
+  medio:            { estudo: 50,  pausa: 10, label: '🍅 Médio (50+10)',           desc: 'Padrão para sessões de 3h–5h diárias' },
+  sessenta:         { estudo: 60,  pausa: 10, label: '⏱ 60+10',                   desc: 'Boa opção para quem consegue manter 1h de foco' },
+  profundo:         { estudo: 90,  pausa: 20, label: '🔥 Profundo (90+20)',        desc: 'Foco profundo — para resolver exercícios longos' },
+  foco_total:       { estudo: 120, pausa: 15, label: '💎 Foco Total (120+15)',     desc: 'Ultra-foco — use só quando estiver em dia de flow' },
+  revisao_leve:     { estudo: 30,  pausa: 5,  label: '🌿 Revisão Leve (30+5)',    desc: 'Para revisar conteúdo já estudado sem forçar demais' },
+  personalizado:    { estudo: null, pausa: null, label: '⚙️ Personalizado',        desc: 'Defina seu próprio tempo de estudo e pausa' },
 };
+
+// ── Helpers ───────────────────────────────────
+function minStr(min) {
+  if (!min || min <= 0) return '0min';
+  const h = Math.floor(min / 60), m = min % 60;
+  return h > 0 ? `${h}h${m > 0 ? m + 'min' : ''}` : `${m}min`;
+}
 
 // ── Atualiza visual do slider ─────────────────
 function onBlocosChange(val) {
-  numBlocosGlobal = parseInt(val);
+  val = parseInt(val);
+  numBlocosGlobal = val;
   const bubble = document.getElementById('cfg-blocos-val');
   const range  = document.getElementById('cfg-blocos');
   if (!bubble || !range) return;
   bubble.textContent = val;
-  const pct = (val - 1) / 7;
-  bubble.style.left = `calc(${pct * 100}% - ${pct * 14 - 7}px)`;
+  // Posiciona o balão proporcionalmente à largura do slider
+  const pct = (val - 1) / (parseInt(range.max) - parseInt(range.min));
+  const thumbW = 18;
+  bubble.style.left = `calc(${pct * 100}% - ${pct * thumbW - thumbW / 2}px)`;
 }
 
 function onMetodoChange(val) {
   const m = METODOS_POMODORO[val];
   const grp = document.getElementById('cfg-intervalo-group');
+  if (!m) return;
   if (val === 'personalizado') {
-    grp.style.display = '';
+    if (grp) grp.style.display = '';
   } else {
-    grp.style.display = '';
+    if (grp) grp.style.display = '';
     if (m.pausa !== null) document.getElementById('cfg-intervalo').value = m.pausa;
   }
+  // Mostra descrição do método
+  const desc = document.getElementById('cfg-metodo-desc');
+  if (desc) desc.textContent = m.desc || '';
 }
 
 // ── Troca de abas ─────────────────────────────
 function switchCfgTab(name, btn) {
   document.querySelectorAll('.cfg-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.cfg-tab-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
   const panel = document.getElementById('cfg-panel-' + name);
   if (panel) panel.classList.add('active');
-
-  if (name === 'descanso') renderDayModeGrid();
+  if (name === 'descanso')    renderDayModeGrid();
   if (name === 'calculadora') calcularCombinacoes();
-  if (name === 'visual') renderTimeline();
+  if (name === 'visual')      renderTimeline();
 }
 
-// ── Render Day Mode Grid ──────────────────────
-const DAY_NAMES = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-const DAY_ORDER_GRID = [1,2,3,4,5,6,0]; // Seg primeiro
-const MODE_LABELS = {
-  normal:  '📚 Normal',
-  leve:    '🌿 Revisão\nleve',
-  parcial: '☕ Descanso\nparcial',
-  total:   '😴 Descanso\ntotal',
-};
+// ── Day Mode Grid ─────────────────────────────
+const DAY_NAMES_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const DAY_ORDER_GRID = [1,2,3,4,5,6,0];
 const MODE_KEYS = ['normal','leve','parcial','total'];
+const MODE_LABELS_HTML = {
+  normal:  '📚<br>Normal',
+  leve:    '🌿<br>Rev. leve',
+  parcial: '☕<br>Desc. parcial',
+  total:   '😴<br>Desc. total',
+};
 
 function renderDayModeGrid() {
   const grid = document.getElementById('day-mode-grid');
   if (!grid) return;
   grid.innerHTML = DAY_ORDER_GRID.map(dow => {
-    const name = DAY_NAMES[dow];
+    const name = DAY_NAMES_PT[dow];
     const currentMode = dayModes[dow] || 'normal';
     const btns = MODE_KEYS.map(mode => {
       const sel = currentMode === mode ? `selected-${mode}` : '';
-      return `<button class="day-mode-btn ${sel}" onclick="setDayMode(${dow},'${mode}',this)">${MODE_LABELS[mode]}</button>`;
+      return `<button class="day-mode-btn ${sel}" onclick="setDayMode(${dow},'${mode}',this)">${MODE_LABELS_HTML[mode]}</button>`;
     }).join('');
     return `<div class="day-mode-card"><div class="day-mode-name">${name}</div>${btns}</div>`;
   }).join('');
@@ -3254,62 +3270,59 @@ function renderDayModeGrid() {
 function setDayMode(dow, mode, btn) {
   dayModes[dow] = mode;
   saveData('day_modes', JSON.stringify(dayModes));
-  // Atualiza classes dos botões da coluna
   const card = btn.closest('.day-mode-card');
   card.querySelectorAll('.day-mode-btn').forEach(b => {
-    MODE_KEYS.forEach(m => b.classList.remove('selected-'+m));
+    MODE_KEYS.forEach(m => b.classList.remove('selected-' + m));
   });
-  btn.classList.add('selected-'+mode);
-  // Sincroniza restDays com os dias de descanso total
-  restDays = Object.entries(dayModes)
-    .filter(([,m]) => m === 'total')
-    .map(([d]) => parseInt(d));
+  btn.classList.add('selected-' + mode);
+  restDays = Object.entries(dayModes).filter(([, m]) => m === 'total').map(([d]) => parseInt(d));
   saveData('rest_days', JSON.stringify(restDays));
   renderWeekTable();
 }
 
-// ── Aplicar configurações (Tab 1) ─────────────
+// ── Aplicar configurações ─────────────────────
 function aplicarConfiguracoes() {
-  const blocos   = numBlocosGlobal || parseInt(document.getElementById('cfg-blocos').value) || 5;
+  // Lê do slider (fonte de verdade para blocos)
+  const sliderEl = document.getElementById('cfg-blocos');
+  const blocos   = sliderEl ? parseInt(sliderEl.value) || numBlocosGlobal : numBlocosGlobal;
   const horas    = parseFloat(document.getElementById('cfg-horas').value) || 4.5;
-  const metodo   = document.getElementById('cfg-metodo').value;
-  let   intervalo = parseInt(document.getElementById('cfg-intervalo').value) || 10;
-  const inicio   = document.getElementById('cfg-inicio').value || '09:00';
+  const metodo   = document.getElementById('cfg-metodo').value || 'medio';
+  let intervalo  = parseInt(document.getElementById('cfg-intervalo').value);
+  if (isNaN(intervalo)) intervalo = 10;
 
-  if (metodo !== 'personalizado') {
-    const m = METODOS_POMODORO[metodo];
-    if (m.pausa !== null) intervalo = m.pausa;
+  // Se método predefinido, usa a pausa dele
+  if (metodo !== 'personalizado' && METODOS_POMODORO[metodo] && METODOS_POMODORO[metodo].pausa !== null) {
+    intervalo = METODOS_POMODORO[metodo].pausa;
+    document.getElementById('cfg-intervalo').value = intervalo;
   }
 
-  const totalMin   = horas * 60;
+  const totalMin    = Math.round(horas * 60);
   const tempoEstudo = Math.round((totalMin - intervalo * (blocos - 1)) / blocos);
   const totalReal   = tempoEstudo * blocos + intervalo * (blocos - 1);
 
-  function minStr(min) {
-    const h = Math.floor(min/60), m = min%60;
-    return h > 0 ? `${h}h${m>0?m+'min':''}` : `${m}min`;
+  // Atualiza resultado
+  const resEl = document.getElementById('cfg-result');
+  if (resEl) {
+    resEl.innerHTML =
+      `<b>${blocos} bloco${blocos > 1 ? 's' : ''} × ${minStr(tempoEstudo)}</b>` +
+      (intervalo > 0 ? ` + ${intervalo}min pausa` : '') +
+      ` = <b>${minStr(totalReal)} total</b><br>` +
+      `<span id="cfg-pomodoro-label">${METODOS_POMODORO[metodo]?.label || '⚙️ Personalizado'} — ${blocos} blocos de ${minStr(tempoEstudo)}</span>`;
   }
 
-  document.getElementById('cfg-result').innerHTML =
-    `<b>${blocos} bloco${blocos>1?'s':''} × ${minStr(tempoEstudo)}</b>` +
-    (intervalo > 0 ? ` + ${intervalo}min de pausa` : '') +
-    ` = <b>${minStr(totalReal)} total</b><br>` +
-    `<span id="cfg-pomodoro-label">${METODOS_POMODORO[metodo]?.label || '⏱ Personalizado'} — ${blocos} blocos de ${minStr(tempoEstudo)}</span>`;
-
-  // Salvar tudo
+  // Persiste
   numBlocosGlobal = blocos;
-  saveData('num_blocos', blocos);
-  saveData('study_config', JSON.stringify({ blocos, horas, metodo, intervalo, inicio }));
+  saveData('num_blocos', String(blocos));
+  saveData('study_config', JSON.stringify({ blocos, horas, metodo, intervalo }));
 
-  // Atualizar nota do cronograma
+  // Atualiza nota do cronograma
   const nota = document.querySelector('.week-note');
   if (nota) {
     nota.innerHTML = `<b>${blocos} blocos por dia</b> × <b>${minStr(tempoEstudo)}</b> de estudo` +
       (intervalo > 0 ? ` + <b>${intervalo}min</b> de pausa` : '') +
-      ` = <b>${minStr(totalReal)} total</b> por dia de estudo.`;
+      ` = <b>${minStr(totalReal)} total</b>.`;
   }
 
-  // Atualiza tabela
   renderWeekTable();
   renderTimeline();
 }
@@ -3319,116 +3332,132 @@ function gerarMelhorPlano() {
   const horas    = parseFloat(document.getElementById('cfg-horas').value) || 4.5;
   const totalMin = horas * 60;
 
-  // Escolhe método Pomodoro ideal baseado no tempo
+  // Escolhe método e blocos ideais
   let melhorMetodo, melhorBlocos;
-  if (totalMin <= 90) {
-    melhorMetodo = 'pomodoro_classico'; melhorBlocos = Math.max(1, Math.round(totalMin / 30));
-  } else if (totalMin <= 210) {
-    melhorMetodo = 'pomodoro_intermediario'; melhorBlocos = Math.max(1, Math.round(totalMin / 60));
-  } else {
-    melhorMetodo = 'pomodoro_profundo'; melhorBlocos = Math.max(1, Math.round(totalMin / 110));
-  }
+  if (totalMin <= 60)       { melhorMetodo = 'revisao_leve';  melhorBlocos = Math.max(1, Math.round(totalMin / 35)); }
+  else if (totalMin <= 120) { melhorMetodo = 'classico';      melhorBlocos = Math.max(1, Math.round(totalMin / 30)); }
+  else if (totalMin <= 200) { melhorMetodo = 'medio';         melhorBlocos = Math.max(1, Math.round(totalMin / 60)); }
+  else if (totalMin <= 300) { melhorMetodo = 'sessenta';      melhorBlocos = Math.max(1, Math.round(totalMin / 70)); }
+  else if (totalMin <= 420) { melhorMetodo = 'profundo';      melhorBlocos = Math.max(1, Math.round(totalMin / 110)); }
+  else                      { melhorMetodo = 'foco_total';    melhorBlocos = Math.max(1, Math.round(totalMin / 135)); }
+
   melhorBlocos = Math.min(8, melhorBlocos);
 
-  // Aplica
+  const sldr = document.getElementById('cfg-blocos');
+  if (sldr) { sldr.value = melhorBlocos; onBlocosChange(melhorBlocos); }
   document.getElementById('cfg-metodo').value = melhorMetodo;
-  document.getElementById('cfg-blocos').value = melhorBlocos;
-  onBlocosChange(melhorBlocos);
   onMetodoChange(melhorMetodo);
   aplicarConfiguracoes();
 
-  // Feedback
+  // Flash de feedback
   const res = document.getElementById('cfg-result');
-  const prev = res.innerHTML;
-  res.innerHTML = `✨ <b>Melhor plano gerado!</b> Método <b>${METODOS_POMODORO[melhorMetodo].label}</b> com <b>${melhorBlocos} blocos</b>.<br>` + prev;
-  setTimeout(() => { res.innerHTML = prev; }, 3000);
+  if (res) {
+    const prev = res.innerHTML;
+    res.innerHTML = `✨ <b>Melhor plano gerado!</b> ${METODOS_POMODORO[melhorMetodo].label} com <b>${melhorBlocos} blocos</b>.<br><span style="font-size:11px;color:var(--muted2)">${METODOS_POMODORO[melhorMetodo].desc}</span>`;
+    setTimeout(() => { res.innerHTML = prev; }, 3500);
+  }
 }
 
-// ── Calculadora de Combinações (Tab 3) ────────
+// ── Calculadora de Combinações ────────────────
 function calcularCombinacoes() {
   const blocos   = parseInt(document.getElementById('calc-blocos').value) || 3;
   const horas    = parseFloat(document.getElementById('calc-horas').value) || 4.5;
-  const totalMin = horas * 60;
+  const totalMin = Math.round(horas * 60);
 
-  function minStr(min) {
-    if (min <= 0) return '—';
-    const h = Math.floor(min/60), m = min%60;
-    return h > 0 ? `${h}h${m>0?' '+m+'min':''}` : `${m}min`;
-  }
-
-  // Sugestões Pomodoro
+  // Todos os métodos Pomodoro como sugestões
   const pSugest = document.getElementById('calc-sugestoes-pomodoro');
-  const pomodoroOpts = [
-    { label:'🍅 Clássico',   estudo:25, pausa:5  },
-    { label:'🍅 Médio',      estudo:50, pausa:10 },
-    { label:'🍅 Profundo',   estudo:90, pausa:20 },
-  ];
-  // Qual é o melhor?
-  let melhorIdx = 0, melhorDiff = Infinity;
-  pomodoroOpts.forEach((p, i) => {
-    const total = p.estudo * blocos + p.pausa * (blocos - 1);
-    const diff  = Math.abs(total - totalMin);
-    if (diff < melhorDiff) { melhorDiff = diff; melhorIdx = i; }
+  if (!pSugest) return;
+
+  const pomodoroList = Object.entries(METODOS_POMODORO)
+    .filter(([k]) => k !== 'personalizado')
+    .map(([key, p]) => ({
+      key, label: p.label, desc: p.desc,
+      estudo: p.estudo, pausa: p.pausa,
+      total: p.estudo * blocos + p.pausa * (blocos - 1)
+    }));
+
+  // Melhor encaixe
+  let melhorKey = pomodoroList[0].key, melhorDiff = Infinity;
+  pomodoroList.forEach(p => {
+    const diff = Math.abs(p.total - totalMin);
+    if (diff < melhorDiff) { melhorDiff = diff; melhorKey = p.key; }
   });
 
-  pSugest.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Sugestões Pomodoro para ${blocos} bloco${blocos>1?'s':''}</div>
-  <div class="pomo-sugest-grid">` +
-  pomodoroOpts.map((p, i) => {
-    const total = p.estudo * blocos + p.pausa * (blocos - 1);
-    const isMelhor = i === melhorIdx;
-    return `<div class="pomo-sugest-card${isMelhor?' melhor':''}" onclick="aplicarPomodoroDaCalc(${p.estudo},${p.pausa},${blocos})">
-      ${isMelhor ? '<div style="font-size:10px;font-weight:700;color:var(--qui);margin-bottom:4px;">✓ MELHOR OPÇÃO</div>' : ''}
-      <div class="pomo-sugest-title">${p.label}</div>
-      <div class="pomo-sugest-sub">${p.estudo}min estudo + ${p.pausa}min pausa<br>Total: <b>${minStr(total)}</b></div>
-    </div>`;
-  }).join('') + '</div>';
+  pSugest.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">
+      Sugestões Pomodoro para <b style="color:var(--accent)">${blocos} bloco${blocos>1?'s':''}</b> em <b style="color:var(--accent)">${minStr(totalMin)}</b>
+    </div>
+    <div class="pomo-sugest-grid">` +
+    pomodoroList.map(p => {
+      const isMelhor = p.key === melhorKey;
+      const diff = p.total - totalMin;
+      const diffStr = diff === 0 ? '= exato' : (diff > 0 ? `+${minStr(diff)} a mais` : `-${minStr(Math.abs(diff))} a menos`);
+      return `<div class="pomo-sugest-card${isMelhor ? ' melhor' : ''}" onclick="aplicarPomodoroDaCalc(${p.estudo},${p.pausa},${blocos})">
+        ${isMelhor ? '<div style="font-size:10px;font-weight:700;color:var(--qui);margin-bottom:4px;">✓ MELHOR ENCAIXE</div>' : ''}
+        <div class="pomo-sugest-title">${p.label}</div>
+        <div class="pomo-sugest-sub">${p.estudo}min + ${p.pausa}min pausa<br>Total: <b>${minStr(p.total)}</b> <span style="opacity:.6">(${diffStr})</span></div>
+      </div>`;
+    }).join('') + '</div>';
 
-  // Combinações personalizadas: varia intervalo de 0 a 30 min
+  // Combinações de divisão — aceita qualquer pausa de 0 a 40min
   const combos = [];
-  for (let pausa = 0; pausa <= 30; pausa += 5) {
-    const estudo = Math.round((totalMin - pausa * (blocos - 1)) / blocos);
-    if (estudo < 10) continue;
-    const totalReal = estudo * blocos + pausa * (blocos - 1);
+  for (let pausa = 0; pausa <= 40; pausa++) {
+    const estudo = (totalMin - pausa * (blocos - 1)) / blocos;
+    if (estudo < 10 || estudo > 180) continue;
+    const estudoRound = Math.round(estudo);
+    const totalReal = estudoRound * blocos + pausa * (blocos - 1);
     const diff = Math.abs(totalReal - totalMin);
-    if (diff > 5) continue; // aceita pequeno arredondamento
-    combos.push({ estudo, pausa, total: totalReal });
+    if (diff > 2) continue;
+    if (combos.some(c => c.estudo === estudoRound && c.pausa === pausa)) continue;
+    combos.push({ estudo: estudoRound, pausa, total: totalReal });
   }
 
   const combosEl = document.getElementById('calc-combinacoes');
+  if (!combosEl) return;
+
   if (combos.length === 0) {
-    combosEl.innerHTML = `<div style="font-size:12px;color:var(--muted2);padding:12px 0;">Nenhuma combinação exata encontrada. Ajuste o número de blocos ou horas.</div>`;
+    combosEl.innerHTML = `<div style="font-size:12px;color:var(--muted2);padding:14px 0;text-align:center;">
+      Nenhuma combinação exata encontrada para esse tempo.<br>
+      <span style="font-size:11px;">Tente ajustar o tempo total ou o número de blocos.</span>
+    </div>`;
     return;
   }
 
-  combosEl.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Distribuições válidas — ${blocos} blocos em ${minStr(totalMin)}</div>
-  <div class="calc-combos-grid">` +
-  combos.map((c, i) => {
-    const isRec = c.pausa === 10 || c.pausa === 5;
-    return `<div class="calc-combo-card${isRec?' recomendado':''}">
-      <span class="calc-combo-badge ${isRec?'badge-rec':'badge-pos'}">${isRec?'★ IDEAL':'#'+(i+1)}</span>
-      <div class="calc-combo-info">
-        <div class="calc-combo-title">${blocos}× ${minStr(c.estudo)} estudo${c.pausa>0?' + '+c.pausa+'min pausa':''}</div>
-        <div class="calc-combo-sub">Total real: ${minStr(c.total)} · Blocos encadeados</div>
-      </div>
-      <button class="calc-combo-use" onclick="usarCombo(${c.estudo},${c.pausa},${blocos})">Usar este</button>
-    </div>`;
-  }).join('') + '</div>';
+  const PAUSA_IDEAL = [5, 10, 15, 20];
+  combosEl.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">
+      ${combos.length} distribuição${combos.length>1?'s':''} válida${combos.length>1?'s':''} — ${blocos} blocos em ${minStr(totalMin)}
+    </div>
+    <div class="calc-combos-grid">` +
+    combos.map((c, i) => {
+      const isRec = PAUSA_IDEAL.includes(c.pausa);
+      return `<div class="calc-combo-card${isRec ? ' recomendado' : ''}">
+        <span class="calc-combo-badge ${isRec ? 'badge-rec' : 'badge-pos'}">${isRec ? '★ IDEAL' : '#' + (i + 1)}</span>
+        <div class="calc-combo-info">
+          <div class="calc-combo-title">${blocos}× ${minStr(c.estudo)} de estudo${c.pausa > 0 ? ' + ' + c.pausa + 'min pausa' : ' (sem pausa)'}</div>
+          <div class="calc-combo-sub">Total: ${minStr(c.total)}${c.pausa > 0 ? ' · ' + c.pausa + 'min de descanso entre blocos' : ''}</div>
+        </div>
+        <button class="calc-combo-use" onclick="usarCombo(${c.estudo},${c.pausa},${blocos})">Usar</button>
+      </div>`;
+    }).join('') + '</div>';
 }
 
 function usarCombo(estudo, pausa, blocos) {
-  document.getElementById('cfg-blocos').value = blocos;
-  onBlocosChange(blocos);
+  const sldr = document.getElementById('cfg-blocos');
+  if (sldr) { sldr.value = blocos; onBlocosChange(blocos); }
   document.getElementById('cfg-intervalo').value = pausa;
   document.getElementById('cfg-metodo').value = 'personalizado';
   const totalMin = estudo * blocos + pausa * (blocos - 1);
   document.getElementById('cfg-horas').value = (totalMin / 60).toFixed(1);
   aplicarConfiguracoes();
-  switchCfgTab('blocos', document.querySelector('.cfg-tab'));
+  // Volta para a aba de blocos
+  const firstTab = document.querySelector('.cfg-tab');
+  if (firstTab) switchCfgTab('blocos', firstTab);
 }
 
 function aplicarPomodoroDaCalc(estudo, pausa, blocos) {
-  document.getElementById('cfg-blocos').value = blocos;
-  onBlocosChange(blocos);
+  const sldr = document.getElementById('cfg-blocos');
+  if (sldr) { sldr.value = blocos; onBlocosChange(blocos); }
   document.getElementById('cfg-intervalo').value = pausa;
   document.getElementById('cfg-metodo').value = 'personalizado';
   const totalMin = estudo * blocos + pausa * (blocos - 1);
@@ -3436,107 +3465,88 @@ function aplicarPomodoroDaCalc(estudo, pausa, blocos) {
   aplicarConfiguracoes();
 }
 
-// ── Timeline Visual (Tab 4) ───────────────────
+// ── Timeline Visual ───────────────────────────
 function renderTimeline() {
   const el = document.getElementById('visual-timeline');
   if (!el) return;
 
-  const cfg    = JSON.parse(loadData('study_config') || '{}');
-  const blocos = numBlocosGlobal || cfg.blocos || 5;
-  const horas  = cfg.horas || 4.5;
-  const pausa  = cfg.intervalo !== undefined ? cfg.intervalo : 10;
-  const inicio = cfg.inicio || '09:00';
+  const blocos   = numBlocosGlobal || 5;
+  const horas    = parseFloat(document.getElementById('cfg-horas').value) || 4.5;
+  let intervalo  = parseInt(document.getElementById('cfg-intervalo').value);
+  if (isNaN(intervalo)) intervalo = 10;
 
-  const totalMin = horas * 60;
-  const estudo   = Math.round((totalMin - pausa * (blocos - 1)) / blocos);
-
-  function minStr(min) {
-    const h = Math.floor(min/60), m = min%60;
-    return h > 0 ? `${h}h${m>0?m+'min':''}` : `${m}min`;
-  }
-  function addMin(timeStr, mins) {
-    const [h, m] = timeStr.split(':').map(Number);
-    const total  = h * 60 + m + mins;
-    return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
-  }
+  const totalMin    = Math.round(horas * 60);
+  const tempoEstudo = Math.round((totalMin - intervalo * (blocos - 1)) / blocos);
+  const totalReal   = tempoEstudo * blocos + intervalo * (blocos - 1);
 
   let html = '<div class="timeline-wrap">';
-  let cur  = inicio;
+  let minAcum = 0;
 
   for (let i = 0; i < blocos; i++) {
-    const fim = addMin(cur, estudo);
+    const inicioBloco = minStr(minAcum) + (minAcum === 0 ? ' (início)' : '');
+    minAcum += tempoEstudo;
     html += `<div class="timeline-block">
-      <div class="timeline-time">${cur} → ${fim}</div>
+      <div class="timeline-time">${minStr(minAcum - tempoEstudo)} → ${minStr(minAcum)}</div>
       <div class="timeline-bar estudo">
-        <span>📚 Bloco ${i+1}</span>
-        <span class="timeline-dur">${minStr(estudo)}</span>
+        <span>📚 Bloco ${i + 1}</span>
+        <span class="timeline-dur">${minStr(tempoEstudo)}</span>
       </div>
     </div>`;
-    cur = fim;
-    if (i < blocos - 1 && pausa > 0) {
-      const fimPausa = addMin(cur, pausa);
+    if (i < blocos - 1 && intervalo > 0) {
+      const pausaFim = minAcum + intervalo;
       html += `<div class="timeline-block">
-        <div class="timeline-time">${cur} → ${fimPausa}</div>
+        <div class="timeline-time">${minStr(minAcum)} → ${minStr(pausaFim)}</div>
         <div class="timeline-bar pausa">
-          <span>☕ Pausa ${i+1}</span>
-          <span class="timeline-dur">${pausa}min</span>
+          <span>☕ Pausa ${i + 1}</span>
+          <span class="timeline-dur">${intervalo}min</span>
         </div>
       </div>`;
-      cur = fimPausa;
+      minAcum = pausaFim;
     }
   }
 
-  const totalReal = estudo * blocos + pausa * (blocos - 1);
   html += `<div class="timeline-block" style="margin-top:8px;">
-    <div class="timeline-time" style="color:var(--qui);font-weight:700;">Total</div>
+    <div class="timeline-time" style="color:var(--qui);font-weight:700;">TOTAL</div>
     <div class="timeline-bar total">
-      <span>✅ ${blocos} blocos concluídos</span>
-      <span class="timeline-dur">${minStr(totalReal)} de estudo</span>
+      <span>✅ ${blocos} bloco${blocos>1?'s':''} · ${intervalo > 0 ? (blocos-1)+' pausa'+((blocos-1)>1?'s':'') : 'sem pausas'}</span>
+      <span class="timeline-dur">${minStr(totalReal)}</span>
     </div>
   </div>`;
-
   html += '</div>';
   el.innerHTML = html;
 }
 
-// ── toggleRestDay (compat com função antiga) ──
+// ── Compat toggleRestDay ──────────────────────
 function toggleRestDay(dow) {
-  const currentMode = dayModes[dow] || 'normal';
-  const newMode     = currentMode === 'total' ? 'normal' : 'total';
-  dayModes[dow]     = newMode;
+  const cur = dayModes[dow] || 'normal';
+  dayModes[dow] = cur === 'total' ? 'normal' : 'total';
   saveData('day_modes', JSON.stringify(dayModes));
-  restDays = Object.entries(dayModes).filter(([,m]) => m === 'total').map(([d]) => parseInt(d));
+  restDays = Object.entries(dayModes).filter(([, m]) => m === 'total').map(([d]) => parseInt(d));
   saveData('rest_days', JSON.stringify(restDays));
   renderWeekTable();
 }
+function updateRestDayButtons() {}
 
-function updateRestDayButtons() {
-  // Compat — não faz nada na nova UI; a renderDayModeGrid substitui
-}
-
-// ── Init: restaura preferências salvas ────────
+// ── Init ──────────────────────────────────────
 (function initConfig() {
   const saved = loadData('study_config');
   if (saved) {
     try {
       const cfg = JSON.parse(saved);
-      if (cfg.blocos) {
-        numBlocosGlobal = cfg.blocos;
-        const sldr = document.getElementById('cfg-blocos');
-        if (sldr) { sldr.value = cfg.blocos; onBlocosChange(cfg.blocos); }
-      }
-      if (cfg.horas)    document.getElementById('cfg-horas').value    = cfg.horas;
+      const blocos = cfg.blocos || 5;
+      numBlocosGlobal = blocos;
+      const sldr = document.getElementById('cfg-blocos');
+      if (sldr) { sldr.value = blocos; onBlocosChange(blocos); }
+      if (cfg.horas !== undefined)    document.getElementById('cfg-horas').value    = cfg.horas;
       if (cfg.metodo)   { document.getElementById('cfg-metodo').value = cfg.metodo; onMetodoChange(cfg.metodo); }
       if (cfg.intervalo !== undefined) document.getElementById('cfg-intervalo').value = cfg.intervalo;
-      if (cfg.inicio)   document.getElementById('cfg-inicio').value   = cfg.inicio;
-      aplicarConfiguracoes();
-    } catch(e) {}
+    } catch(e) { console.warn('initConfig error:', e); }
   } else {
-    // Default: init slider
     onBlocosChange(numBlocosGlobal);
-    aplicarConfiguracoes();
   }
+  aplicarConfiguracoes();
 })();
+</script>
 
 
 <!-- Firebase Compat SDKs -->
