@@ -535,39 +535,141 @@ footer { padding: 48px 80px; border-top: 1px solid var(--border); display: flex;
 .wc-sim { cursor: default; }
 .drag-hint { font-size:10px;color:var(--muted2);text-align:center;margin-top:10px;letter-spacing:.04em; }
 
-/* CALENDÁRIO */
-.cal-phases { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; margin-top:40px; }
-.cal-phase-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:22px; position:relative; overflow:hidden; }
-.cal-phase-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
-.cal-phase-card.fase-estudo::before { background:linear-gradient(to right,var(--mat),var(--fis)); }
-.cal-phase-card.fase-simulado::before { background:linear-gradient(to right,var(--gold),#f87171); }
-.cal-phase-card.fase-vestibular::before { background:linear-gradient(to right,var(--qui),var(--por)); }
-.cal-phase-card.fase-revisao::before { background:linear-gradient(to right,var(--fis),var(--qui)); }
-.cal-phase-title { font-family:var(--font-d); font-size:16px; font-weight:700; letter-spacing:-0.02em; margin-bottom:4px; }
-.cal-phase-date { font-size:11px; color:var(--muted2); font-weight:500; letter-spacing:.06em; text-transform:uppercase; margin-bottom:14px; }
-.cal-phase-desc { font-size:13px; color:var(--muted); line-height:1.6; }
-.cal-phase-badge { display:inline-block; font-size:10px; font-weight:600; padding:2px 10px; border-radius:99px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:10px; }
-.cal-phase-badge.estudo { background:rgba(91,143,255,.15); color:#7ba7ff; }
-.cal-phase-badge.simulado { background:rgba(251,191,36,.15); color:#fcd34d; }
-.cal-phase-badge.vestibular { background:rgba(251,113,133,.15); color:#fc8fa2; }
-.cal-phase-badge.revisao { background:rgba(167,139,250,.15); color:#b89dfb; }
-.cal-timeline { margin-top:36px; }
-.cal-timeline-title { font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border); }
-.cal-event { display:flex; gap:16px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.04); align-items:flex-start; }
-.cal-event:last-child { border-bottom:none; }
-.cal-event-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; }
-.cal-event-date { font-family:var(--font-d); font-size:12px; font-weight:700; color:var(--muted2); min-width:90px; flex-shrink:0; line-height:1.5; }
-.cal-event-content { flex:1; }
-.cal-event-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
-.cal-event-desc { font-size:12px; color:var(--muted); line-height:1.5; }
-.cal-days-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:2px 8px; border-radius:99px; margin-left:8px; }
-.cal-days-badge.urgent { background:rgba(251,113,133,.15); color:#fc8fa2; }
-.cal-days-badge.near { background:rgba(251,191,36,.15); color:#fcd34d; }
-.cal-days-badge.ok { background:rgba(52,211,153,.15); color:#4dd9a0; }
-.cal-estrategia { margin-top:28px; background:rgba(108,143,255,.06); border:1px solid rgba(108,143,255,.14); border-radius:14px; padding:20px 24px; }
-.cal-estrategia h4 { font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--accent); margin-bottom:12px; }
-.cal-estrategia p { font-size:13px; color:var(--muted); line-height:1.7; }
-.cal-estrategia strong { color:var(--text); font-weight:500; }
+/* ═══════════════════════════════════════════════
+   CALENDÁRIO INTERATIVO — NOVO SISTEMA COMPLETO
+   ═══════════════════════════════════════════════ */
+
+/* Container principal */
+#cal-content { margin-top: 36px; }
+
+/* View Toggle */
+.ical-view-tabs { display:flex; gap:6px; margin-bottom:24px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:5px; width:fit-content; }
+.ical-view-tab { padding:8px 18px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; color:var(--muted); border:none; background:transparent; font-family:var(--font-b); transition:all .2s; letter-spacing:.01em; }
+.ical-view-tab.active { background:var(--surface2); color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,.3); }
+.ical-view-tab:hover:not(.active) { color:var(--text); }
+
+/* Toolbar */
+.ical-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+.ical-nav-btn { width:36px; height:36px; border-radius:10px; border:1px solid var(--border2); background:var(--surface); color:var(--muted); cursor:pointer; font-size:16px; display:flex;align-items:center;justify-content:center; transition:all .2s; flex-shrink:0; }
+.ical-nav-btn:hover { color:var(--text); border-color:rgba(255,255,255,.25); background:var(--surface2); }
+.ical-month-label { font-family:var(--font-d); font-size:20px; font-weight:700; letter-spacing:-0.02em; flex:1; }
+.ical-today-btn { padding:7px 16px; border-radius:10px; border:1px solid var(--border2); background:var(--surface); color:var(--accent); cursor:pointer; font-size:12px; font-weight:600; font-family:var(--font-b); transition:all .2s; letter-spacing:.03em; }
+.ical-today-btn:hover { background:rgba(108,143,255,.1); }
+.ical-add-btn { padding:8px 16px; border-radius:10px; background:var(--accent); color:#fff; border:none; cursor:pointer; font-size:13px; font-weight:600; font-family:var(--font-b); display:flex;align-items:center;gap:6px; transition:all .2s; }
+.ical-add-btn:hover { background:var(--accent2); transform:translateY(-1px); box-shadow:0 4px 16px rgba(108,143,255,.35); }
+
+/* Filtros de categoria */
+.ical-filters { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.ical-filter { padding:5px 12px; border-radius:99px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid transparent; transition:all .2s; font-family:var(--font-b); letter-spacing:.04em; text-transform:uppercase; opacity:.55; }
+.ical-filter.on { opacity:1; }
+.ical-filter-sim  { border-color:rgba(167,139,250,.4); color:#b89dfb; background:rgba(167,139,250,.08); }
+.ical-filter-sim.on  { background:rgba(167,139,250,.2); }
+.ical-filter-rev  { border-color:rgba(52,211,153,.4);  color:#4dd9a0; background:rgba(52,211,153,.08); }
+.ical-filter-rev.on  { background:rgba(52,211,153,.2); }
+.ical-filter-vest { border-color:rgba(251,113,133,.4); color:#fc8fa2; background:rgba(251,113,133,.08); }
+.ical-filter-vest.on { background:rgba(251,113,133,.2); }
+.ical-filter-est  { border-color:rgba(108,143,255,.4); color:#7ba7ff; background:rgba(108,143,255,.08); }
+.ical-filter-est.on  { background:rgba(108,143,255,.2); }
+.ical-filter-fol  { border-color:rgba(112,112,160,.4); color:var(--muted); background:rgba(112,112,160,.06); }
+.ical-filter-fol.on  { background:rgba(112,112,160,.14); }
+.ical-filter-task { border-color:rgba(251,191,36,.4);  color:#fcd34d; background:rgba(251,191,36,.06); }
+.ical-filter-task.on { background:rgba(251,191,36,.14); }
+
+/* ── VISÃO MENSAL ── */
+.ical-month-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--border); border-radius:16px; overflow:hidden; border:1px solid var(--border); }
+.ical-dow-header { background:var(--surface); padding:10px 0; text-align:center; font-size:11px; font-weight:700; color:var(--muted2); letter-spacing:.07em; text-transform:uppercase; }
+.ical-day-cell { background:var(--bg2); min-height:100px; padding:8px; position:relative; transition:background .15s; cursor:pointer; }
+.ical-day-cell:hover { background:var(--surface); }
+.ical-day-cell.today { background:rgba(108,143,255,.07); }
+.ical-day-cell.today::after { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:var(--accent); }
+.ical-day-cell.other-month { opacity:.35; }
+.ical-day-cell.drag-over-cell { background:rgba(108,143,255,.15); outline:2px dashed rgba(108,143,255,.5); outline-offset:-2px; }
+.ical-day-num { font-family:var(--font-d); font-size:13px; font-weight:700; margin-bottom:5px; line-height:1; }
+.ical-day-cell.today .ical-day-num { background:var(--accent); color:#fff; width:22px;height:22px; border-radius:50%; display:flex;align-items:center;justify-content:center; font-size:11px; }
+.ical-chip { border-radius:5px; padding:2px 6px; font-size:10px; font-weight:600; margin-bottom:2px; cursor:pointer; display:flex;align-items:center;gap:4px; transition:all .15s; user-select:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ical-chip:hover { filter:brightness(1.2); transform:translateX(1px); }
+.ical-chip.done-chip { opacity:.4; text-decoration:line-through; }
+.ical-chip.dragging-chip { opacity:.35; transform:scale(.95); }
+.ical-more-btn { font-size:10px; color:var(--muted2); cursor:pointer; margin-top:2px; }
+.ical-more-btn:hover { color:var(--text); }
+
+/* ── VISÃO SEMANAL ── */
+.ical-week-wrap { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+.ical-week-header { display:grid; grid-template-columns: 60px repeat(7,1fr); background:var(--bg2); border-bottom:1px solid var(--border); }
+.ical-week-dow { padding:12px 8px; text-align:center; }
+.ical-week-dow-label { font-size:11px; font-weight:700; color:var(--muted2); letter-spacing:.07em; text-transform:uppercase; }
+.ical-week-dow-num { font-family:var(--font-d); font-size:22px; font-weight:700; line-height:1; margin-top:2px; }
+.ical-week-dow-num.today-num { color:var(--accent); }
+.ical-week-body { display:grid; grid-template-columns: 60px repeat(7,1fr); }
+.ical-week-time-col { }
+.ical-week-time-slot { height:64px; padding:0 8px; display:flex; align-items:flex-start; padding-top:4px; }
+.ical-week-time-label { font-size:10px; color:var(--muted2); font-family:var(--font-b); }
+.ical-week-day-col { border-left:1px solid var(--border); position:relative; cursor:pointer; }
+.ical-week-day-col:hover { background:rgba(255,255,255,.015); }
+.ical-week-day-col.today-col { background:rgba(108,143,255,.04); }
+.ical-week-slot { height:64px; border-bottom:1px solid rgba(255,255,255,.03); }
+.ical-week-event { position:absolute; left:3px; right:3px; border-radius:6px; padding:4px 7px; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; overflow:hidden; z-index:2; }
+.ical-week-event:hover { filter:brightness(1.15); transform:scale(1.01); z-index:3; }
+
+/* ── VISÃO DIÁRIA ── */
+.ical-day-view { }
+.ical-day-header { display:flex; align-items:center; gap:16px; margin-bottom:20px; }
+.ical-day-big-num { font-family:var(--font-d); font-size:64px; font-weight:800; letter-spacing:-0.04em; line-height:1; color:var(--accent); }
+.ical-day-info { }
+.ical-day-name { font-family:var(--font-d); font-size:24px; font-weight:700; }
+.ical-day-month { font-size:13px; color:var(--muted); }
+.ical-day-events-list { display:flex; flex-direction:column; gap:8px; }
+.ical-day-event-row { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 18px; display:flex; gap:14px; align-items:flex-start; transition:all .2s; }
+.ical-day-event-row:hover { border-color:var(--border2); transform:translateX(3px); }
+.ical-day-event-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+.ical-day-event-body { flex:1; }
+.ical-day-event-title { font-size:14px; font-weight:600; margin-bottom:3px; display:flex; align-items:center; gap:8px; }
+.ical-day-event-desc { font-size:12px; color:var(--muted); line-height:1.6; }
+.ical-day-event-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+.ical-ev-btn { width:28px;height:28px; border-radius:7px; border:1px solid var(--border2); background:transparent; color:var(--muted2); cursor:pointer; font-size:13px; display:flex;align-items:center;justify-content:center; transition:all .15s; }
+.ical-ev-btn:hover { color:var(--text); border-color:rgba(255,255,255,.25); background:var(--surface2); }
+.ical-ev-btn.del-btn:hover { color:#f87171; border-color:rgba(248,113,113,.4); }
+.ical-check-box { width:20px; height:20px; border-radius:6px; border:1.5px solid var(--muted2); cursor:pointer; flex-shrink:0; display:flex;align-items:center;justify-content:center; transition:all .2s; font-size:11px; font-weight:700; }
+.ical-check-box.done { color:#fff; border-color:var(--qui); background:var(--qui); }
+
+/* ── MODAL ADD/EDIT ── */
+.ical-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:3000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity .25s; }
+.ical-modal-overlay.open { opacity:1; pointer-events:all; }
+.ical-modal { background:var(--surface2); border:1px solid var(--border2); border-radius:20px; padding:28px; width:90%; max-width:480px; position:relative; transform:scale(.96) translateY(10px); transition:all .25s; }
+.ical-modal-overlay.open .ical-modal { transform:scale(1) translateY(0); }
+.ical-modal-title { font-family:var(--font-d); font-size:18px; font-weight:700; margin-bottom:20px; letter-spacing:-0.02em; }
+.ical-form-group { margin-bottom:14px; }
+.ical-form-label { font-size:11px; font-weight:600; color:var(--muted2); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; display:block; }
+.ical-form-input, .ical-form-textarea, .ical-form-select { width:100%; background:var(--bg2); border:1px solid var(--border2); border-radius:10px; padding:10px 14px; font-size:13px; color:var(--text); font-family:var(--font-b); outline:none; transition:border-color .2s; }
+.ical-form-input:focus, .ical-form-textarea:focus, .ical-form-select:focus { border-color:var(--accent); }
+.ical-form-textarea { min-height:70px; resize:vertical; }
+.ical-form-select option { background:var(--surface2); }
+.ical-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.ical-type-btn { padding:10px 8px; border-radius:10px; border:1px solid var(--border2); background:transparent; cursor:pointer; font-size:11px; font-weight:600; color:var(--muted); font-family:var(--font-b); transition:all .2s; text-align:center; }
+.ical-type-btn.sel { border-width:2px; color:var(--text); }
+.ical-modal-actions { display:flex; gap:8px; margin-top:20px; }
+.ical-save-btn { flex:1; padding:11px; background:var(--accent); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--font-b); transition:all .2s; }
+.ical-save-btn:hover { background:var(--accent2); }
+.ical-cancel-btn { padding:11px 20px; background:transparent; border:1px solid var(--border2); color:var(--muted); border-radius:10px; font-size:13px; cursor:pointer; font-family:var(--font-b); transition:all .2s; }
+.ical-cancel-btn:hover { color:var(--text); border-color:rgba(255,255,255,.25); }
+.ical-del-confirm-btn { padding:11px 16px; background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.3); color:#f87171; border-radius:10px; font-size:13px; cursor:pointer; font-family:var(--font-b); transition:all .2s; }
+.ical-del-confirm-btn:hover { background:rgba(248,113,113,.2); }
+
+/* ── EMPTY STATE ── */
+.ical-empty { text-align:center; padding:40px 20px; color:var(--muted2); }
+.ical-empty-icon { font-size:32px; margin-bottom:10px; }
+.ical-empty-text { font-size:14px; }
+
+/* ── LEGENDA ── */
+.ical-legend { display:flex; gap:16px; flex-wrap:wrap; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+.ical-leg-item { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted2); }
+.ical-leg-dot { width:10px; height:10px; border-radius:50%; }
+
+/* Animações */
+@keyframes ical-pop { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
+.ical-chip { animation: ical-pop .15s ease; }
+@keyframes ical-fade-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.ical-day-event-row { animation: ical-fade-in .2s ease; }
 
 @media print {
   nav, #print-btn, .hero-bg, .reveal, #popup-hoje, #daily-island, .popup-min-btn { opacity: 1 !important; transform: none !important; }
@@ -1344,13 +1446,41 @@ footer { padding: 48px 80px; border-top: 1px solid var(--border); display: flex;
 
 <div class="divider"></div>
 
-<!-- CALENDÁRIO ANUAL -->
+<!-- CALENDÁRIO INTERATIVO -->
 <section id="calendario">
   <div class="s-tag">Mai 2026 — Jan 2027</div>
-  <h2 class="s-title reveal">Calendário anual</h2>
-  <p class="s-desc reveal">Análise completa do calendário Poliedro Extensivo Manhã 2026 — simulados, vestibulares e fases de estudo. Use isso para planejar com antecedência.</p>
-  <div id="cal-content"><!-- rendered by JS --></div>
+  <h2 class="s-title reveal">Calendário interativo</h2>
+  <p class="s-desc reveal">Calendário completo com simulados Poliedro, vestibulares e eventos acadêmicos. Adicione tarefas, arraste eventos, marque como concluído.</p>
+  <div id="cal-content"><!-- rendered by renderInteractiveCalendar() --></div>
 </section>
+
+<!-- MODAL CALENDÁRIO -->
+<div class="ical-modal-overlay" id="ical-modal-overlay">
+  <div class="ical-modal">
+    <div class="ical-modal-title" id="ical-modal-title">Novo evento</div>
+    <div class="ical-form-group">
+      <label class="ical-form-label">Título</label>
+      <input class="ical-form-input" id="ical-inp-title" placeholder="Ex: Revisar geometria...">
+    </div>
+    <div class="ical-form-group">
+      <label class="ical-form-label">Data</label>
+      <input class="ical-form-input" id="ical-inp-date" type="date">
+    </div>
+    <div class="ical-form-group">
+      <label class="ical-form-label">Descrição (opcional)</label>
+      <textarea class="ical-form-textarea" id="ical-inp-desc" placeholder="Detalhes do evento..."></textarea>
+    </div>
+    <div class="ical-form-group">
+      <label class="ical-form-label">Tipo</label>
+      <div class="ical-type-grid" id="ical-type-grid"></div>
+    </div>
+    <div class="ical-modal-actions">
+      <button class="ical-cancel-btn" onclick="icalCloseModal()">Cancelar</button>
+      <button class="ical-del-confirm-btn" id="ical-del-btn" onclick="icalDeleteCurrent()" style="display:none">🗑 Excluir</button>
+      <button class="ical-save-btn" onclick="icalSaveEvent()">Salvar</button>
+    </div>
+  </div>
+</div>
 
 <div class="divider"></div>
 
@@ -2986,168 +3116,449 @@ function resetWeekSwaps() {
 }
 
 // ═══════════════════════════════════════════════
-// CALENDÁRIO ANUAL — Poliedro Extensivo 2026
+// CALENDÁRIO INTERATIVO — ENGINE COMPLETO
 // ═══════════════════════════════════════════════
-const CALENDAR_EVENTS = [
-  // ── MAIO 2026 — Início da reta de conteúdo ─────────────────────────
-  { date: new Date(2026,4,13), type:'simulado', color:'var(--gold)', title:'Simulado SEP ENEM — Dia 1', desc:'14h30–20h. Prova modelo ENEM completa. Foque em Mat e Ciências da Natureza. Use como diagnóstico.' },
-  { date: new Date(2026,4,14), type:'simulado', color:'var(--gold)', title:'Simulado SEP ENEM — Dia 2', desc:'14h30–19h30. Linguagens e Ciências Humanas. Anote todos os erros para revisão.' },
-  { date: new Date(2026,4,31), type:'estudo', color:'var(--mat)', title:'Meta de maio: fechar Mat F1 L1', desc:'Até o fim de maio, feche pelo menos a Frente 1 de Matemática (Funções — L1). Base para tudo.' },
 
-  // ── JUNHO 2026 — Aceleração de conteúdo ────────────────────────────
-  { date: new Date(2026,5,1), type:'estudo', color:'var(--accent)', title:'Início de Junho — sprint de conteúdo', desc:'Mês sem simulados externos. Aproveite para avançar forte em Física F1 e Química F1.' },
-  { date: new Date(2026,5,20), type:'estudo', color:'var(--fis)', title:'Meta: Fís F1 (Mecânica) concluída', desc:'Cinemática + Dinâmica são os blocos mais pesados de Física. Feche-os até esta data.' },
-  { date: new Date(2026,5,30), type:'estudo', color:'var(--qui)', title:'Meta de junho: Qui F1 (Orgânica) avançada', desc:'Nomenclatura, isomeria e funções orgânicas básicas devem estar consolidadas.' },
+// ── Tipos de evento ──────────────────────────────
+const ICAL_TYPES = {
+  simulado: { label:'Simulado',    icon:'⚡', color:'#a78bfa', bg:'rgba(167,139,250,.22)', border:'rgba(167,139,250,.45)' },
+  revisao:  { label:'Revisão',     icon:'🔁', color:'#34d399', bg:'rgba(52,211,153,.2)',   border:'rgba(52,211,153,.4)' },
+  vestibular:{ label:'Vestibular', icon:'🎯', color:'#fb7185', bg:'rgba(251,113,133,.2)',  border:'rgba(251,113,133,.4)' },
+  estudo:   { label:'Estudo',      icon:'📚', color:'#6c8fff', bg:'rgba(108,143,255,.2)',  border:'rgba(108,143,255,.4)' },
+  folga:    { label:'Sem aula',    icon:'😴', color:'#70708a', bg:'rgba(112,112,160,.15)', border:'rgba(112,112,160,.3)' },
+  tarefa:   { label:'Tarefa',      icon:'✏️', color:'#fbbf24', bg:'rgba(251,191,36,.15)',  border:'rgba(251,191,36,.35)' },
+};
 
-  // ── JULHO 2026 — Consolidação ───────────────────────────────────────
-  { date: new Date(2026,6,4), type:'estudo', color:'var(--mat)', title:'Início de Mat F2 (Álgebra & Sequências)', desc:'Com F1 fechada, inicie F2. PA, PG e matemática financeira são recorrentes na FUVEST.' },
-  { date: new Date(2026,6,18), type:'estudo', color:'var(--por)', title:'Meta: Por F1 (Gramática) concluída', desc:'Sintaxe, morfologia e concordância. A base gramatical que sustenta Interpretação e Redação.' },
-  { date: new Date(2026,6,31), type:'estudo', color:'var(--accent)', title:'Checkpoint de julho', desc:'Revise o progresso: Mat F1+F2, Fís F1, Qui F1, Por F1 devem estar concluídas ou quase.' },
-
-  // ── AGOSTO 2026 — Volume máximo ────────────────────────────────────
-  { date: new Date(2026,7,1), type:'estudo', color:'var(--fis)', title:'Início de Fís F2 (Eletricidade)', desc:'Eletrostática + Eletrodinâmica — o bloco com maior peso histórico nas provas da FUVEST.' },
-  { date: new Date(2026,7,15), type:'simulado', color:'var(--gold)', title:'Simulado SEP ENEM (agosto) — Dia 1', desc:'Segundo simulado modelo ENEM do semestre. Você já deve ter avançado bastante em conteúdo.' },
-  { date: new Date(2026,7,16), type:'simulado', color:'var(--gold)', title:'Simulado SEP ENEM (agosto) — Dia 2', desc:'Linguagens e Humanas. Analise padrão de erros cuidadosamente. Compare com maio.' },
-  { date: new Date(2026,7,29), type:'estudo', color:'var(--accent)', title:'Meta de agosto: L2 concluído em 3 matérias', desc:'Matemática, Física e Química devem estar com L2 finalizado até o fim de agosto.' },
-
-  // ── SETEMBRO 2026 ────────────────────────────────────────────────────
-  { date: new Date(2026,8,1), type:'estudo', color:'var(--accent)', title:'Virada de fase: início de revisão intensiva', desc:'Reduza conteúdo novo. Revisão espaçada diária e análise cirúrgica de erros nos simulados.' },
-  { date: new Date(2026,8,5), type:'simulado', color:'var(--mat)', title:'Simulado FUVEST 2ª Fase — Dia 1', desc:'Prova específica de 2ª fase: Português + Redação dissertativa. Treine desenvolvimento e argumentação.' },
-  { date: new Date(2026,8,6), type:'simulado', color:'var(--mat)', title:'Simulado FUVEST 2ª Fase — Dia 2', desc:'Prova específica de 2ª fase: Matemática + Física + Química discursivas. Mostre desenvolvimento completo.' },
-  { date: new Date(2026,8,19), type:'simulado', color:'var(--gold)', title:'Simulado SEP ENEM (setembro) — Dia 1', desc:'Simulado modelo ENEM — você deve estar com volume alto de conteúdo. Alta pontuação esperada.' },
-  { date: new Date(2026,8,26), type:'simulado', color:'var(--gold)', title:'Simulado SEP ENEM (setembro) — Dia 2', desc:'Linguagens e Humanas. Analise o padrão de erros e compare com os simulados anteriores.' },
-  { date: new Date(2026,8,30), type:'estudo', color:'var(--por)', title:'Meta: Por F2 (Literatura) concluída', desc:'Todos os movimentos literários e obras da lista obrigatória. Comece isso cedo — é extenso.' },
-
-  // ── OUTUBRO 2026 ─────────────────────────────────────────────────────
-  { date: new Date(2026,9,3), type:'estudo', color:'var(--accent)', title:'Início de outubro: foco em revisão cirúrgica', desc:'Identifique os tópicos com mais erros nos simulados de setembro e ataque cada um com exercícios.' },
-  { date: new Date(2026,9,18), type:'vestibular', color:'var(--fis)', title:'🦄 UNICAMP 1ª Fase', desc:'Prova oficial da Unicamp. Questões contextualizadas e interdisciplinares. Chegue descansado.' },
-  { date: new Date(2026,9,31), type:'estudo', color:'var(--accent)', title:'Checkpoint de outubro', desc:'Últimas 2 semanas antes da FUVEST 1ª fase. Zero conteúdo novo. Só revisão e simulados.' },
-
-  // ── NOVEMBRO 2026 — Reta final FUVEST ──────────────────────────────
-  { date: new Date(2026,10,1), type:'estudo', color:'var(--accent)', title:'Novembro: zero conteúdo novo', desc:'A partir de hoje, apenas revisão, simulados e controle emocional. Conteúdo novo confunde.' },
-  { date: new Date(2026,10,14), type:'estudo', color:'var(--accent)', title:'Véspera: descanso e revisão leve', desc:'Não estude pesado. Revise apenas fórmulas e macetes. Durma cedo. Leve documento e caneta.' },
-  { date: new Date(2026,10,15), type:'vestibular', color:'var(--por)', title:'🎯 FUVEST 1ª Fase', desc:'O dia. 80 questões. Chegue cedo, leve documento e caneta. Meta: ≥70% para Eng. Produção USP.' },
-  { date: new Date(2026,10,29), type:'vestibular', color:'var(--qui)', title:'🦄 UNICAMP 2ª Fase — Dia 1', desc:'Prova discursiva da Unicamp. Redação e questões dissertativas. Foque em desenvolvimento claro.' },
-  { date: new Date(2026,10,30), type:'vestibular', color:'var(--qui)', title:'🦄 UNICAMP 2ª Fase — Dia 2', desc:'Ciências da Natureza + Matemática discursivos. Última prova antes da FUVEST 2ª fase.' },
-
-  // ── DEZEMBRO 2026 — FUVEST 2ª Fase ────────────────────────────────
-  { date: new Date(2026,11,5), type:'simulado', color:'var(--mat)', title:'Simulado FUVEST 2ª Fase — Dia 1', desc:'Sáb 14h30–18h30. Simulado dissertativo — pratique Redação e Português discursivo.' },
-  { date: new Date(2026,11,6), type:'simulado', color:'var(--mat)', title:'Simulado FUVEST 2ª Fase — Dia 2', desc:'Dom 8h30–12h30. Ciências (Fís+Qui) e Matemática discursivos. Mostre desenvolvimento.' },
-  { date: new Date(2026,11,13), type:'vestibular', color:'var(--qui)', title:'🎯 FUVEST 2ª Fase — Dia 1', desc:'Português + Redação. Dia 1 define muito — não subestime a redação dissertativa.' },
-  { date: new Date(2026,11,14), type:'vestibular', color:'var(--qui)', title:'🎯 FUVEST 2ª Fase — Dia 2', desc:'Matemática + Física + Química discursivas. Mostre domínio e desenvolvimento claro.' },
-
-  // ── JANEIRO 2027 — Unesp ────────────────────────────────────────────
-  { date: new Date(2027,0,9), type:'vestibular', color:'var(--mat)', title:'Unesp Dia 1 (previsão 2027)', desc:'Após as festas — não zere o ritmo de estudo em dezembro. Mantenha revisão leve.' },
-  { date: new Date(2027,0,10), type:'vestibular', color:'var(--mat)', title:'Unesp Dia 2 (previsão 2027)', desc:'Ciências da Natureza. Última grande prova da temporada — chegue descansado e confiante.' },
+// ── Eventos fixos (do calendário Poliedro 2026 + vestibulares) ──
+const ICAL_BASE_EVENTS = [
+  // MAIO 2026
+  { id:'b1',  date:'2026-05-13', type:'simulado',  title:'Simulado SEP ENEM — Dia 1', desc:'14h30–20h. Prova modelo ENEM completa. Foque em Mat e Ciências da Natureza.' },
+  { id:'b2',  date:'2026-05-14', type:'simulado',  title:'Simulado SEP ENEM — Dia 2', desc:'14h30–19h30. Linguagens e Ciências Humanas. Anote todos os erros.' },
+  { id:'b3',  date:'2026-05-29', type:'simulado',  title:'Simulado SEP — Fuvest 1ª Fase', desc:'Sáb 14h30–19h30. Simulado no modelo da 1ª fase da Fuvest.' },
+  // JUNHO 2026
+  { id:'b4',  date:'2026-06-06', type:'simulado',  title:'Simulado FUVEST 2ª Fase — Por/Red — Dia 1', desc:'Sáb 14h30–18h30. Simulado dissertativo — Português e Redação.' },
+  { id:'b5',  date:'2026-06-07', type:'simulado',  title:'Simulado FUVEST 2ª Fase — Específica — Dia 2', desc:'Dom 8h30–12h30. Mat + Fís + Qui discursivos.' },
+  // AGOSTO 2026
+  { id:'b6',  date:'2026-08-15', type:'simulado',  title:'Simulado SEP ENEM (agosto) — Dia 1', desc:'Segundo simulado modelo ENEM. Analise evolução desde maio.' },
+  { id:'b7',  date:'2026-08-16', type:'simulado',  title:'Simulado SEP ENEM (agosto) — Dia 2', desc:'Linguagens e Humanas. Compare com os resultados de maio.' },
+  { id:'b8',  date:'2026-08-29', type:'simulado',  title:'Simulado FUVEST — Líng/Red — Dia 1', desc:'Sáb 14h30–18h30. Prova de Língua Portuguesa e Redação.' },
+  { id:'b9',  date:'2026-08-30', type:'simulado',  title:'Simulado FUVEST — Específica — Dia 2', desc:'Dom 8h30–12h30. Ciências + Matemática discursivos.' },
+  // SETEMBRO 2026
+  { id:'b10', date:'2026-09-05', type:'simulado',  title:'Simulado FUVEST 2ª Fase — Por/Red — Dia 1', desc:'Prova específica de 2ª fase: Português + Redação.' },
+  { id:'b11', date:'2026-09-06', type:'simulado',  title:'Simulado FUVEST 2ª Fase — Específica — Dia 2', desc:'Matemática + Física + Química discursivas.' },
+  { id:'b12', date:'2026-09-19', type:'simulado',  title:'Simulado SEP ENEM (setembro) — Dia 1', desc:'Alta pontuação esperada — você deve ter alto volume de conteúdo.' },
+  { id:'b13', date:'2026-09-26', type:'simulado',  title:'Simulado SEP ENEM (setembro) — Dia 2', desc:'Linguagens e Humanas.' },
+  // OUTUBRO 2026
+  { id:'b14', date:'2026-10-11', type:'revisao',   title:'Revisão Vunesp', desc:'Horário diferenciado. Revisão específica para o formato Vunesp.' },
+  { id:'b15', date:'2026-10-18', type:'vestibular', title:'🦄 UNICAMP 1ª Fase', desc:'Prova oficial. Questões contextualizadas e interdisciplinares. Chegue descansado.' },
+  { id:'b16', date:'2026-10-25', type:'folga',     title:'Eleições — Sem atividade', desc:'Sem atividade programada. Aproveite para revisar ou descansar.' },
+  // NOVEMBRO 2026
+  { id:'b17', date:'2026-11-08', type:'revisao',   title:'Revisão FUVEST 1ª Fase e ENEM', desc:'Semana S-1 antes da Fuvest. Revisão de tópicos-chave, zero conteúdo novo.' },
+  { id:'b18', date:'2026-11-15', type:'vestibular', title:'🎯 FUVEST 1ª Fase', desc:'O dia. 80 questões. Meta: ≥70% para Eng. Produção USP. Leve documento e caneta.' },
+  { id:'b19', date:'2026-11-22', type:'simulado',  title:'Simulado UNICAMP 1ª Fase', desc:'Simulado no formato da 1ª fase da UNICAMP.' },
+  { id:'b20', date:'2026-11-29', type:'vestibular', title:'🦄 UNICAMP 2ª Fase — Dia 1', desc:'Prova discursiva. Redação e questões dissertativas.' },
+  { id:'b21', date:'2026-11-30', type:'vestibular', title:'🦄 UNICAMP 2ª Fase — Dia 2', desc:'Ciências da Natureza + Matemática discursivos.' },
+  // DEZEMBRO 2026
+  { id:'b22', date:'2026-12-05', type:'simulado',  title:'Simulado FUVEST 2ª Fase — Dia 1', desc:'Sáb 14h30–18h30. Dissertativo — Redação e Português.' },
+  { id:'b23', date:'2026-12-06', type:'simulado',  title:'Simulado FUVEST 2ª Fase — Dia 2', desc:'Dom 8h30–12h30. Ciências + Matemática discursivos.' },
+  { id:'b24', date:'2026-12-13', type:'vestibular', title:'🎯 FUVEST 2ª Fase — Dia 1', desc:'Português + Redação. Dia 1 define muito — caprichar na dissertação.' },
+  { id:'b25', date:'2026-12-14', type:'vestibular', title:'🎯 FUVEST 2ª Fase — Dia 2', desc:'Matemática + Física + Química discursivas. Mostre domínio e desenvolvimento.' },
+  // REVISÕES EXTRA
+  { id:'b26', date:'2026-09-14', type:'revisao',   title:'Revisão 2ª Fase On-line', desc:'Revisão on-line de conteúdo de 2ª fase.' },
+  { id:'b27', date:'2026-10-04', type:'revisao',   title:'Revisão 1ª Fase e ENEM', desc:'Revisão intensa com foco em 1ª fase Fuvest e ENEM.' },
+  // PLANTÕES
+  { id:'b28', date:'2026-12-15', type:'revisao',   title:'Plantão de Dúvidas — Dia 1', desc:'Plantão com professores para tirar dúvidas de 2ª fase.' },
+  { id:'b29', date:'2026-12-16', type:'revisao',   title:'Plantão de Dúvidas — Dia 2', desc:'Segundo dia de plantão.' },
+  // UNESP 2027
+  { id:'b30', date:'2027-01-07', type:'simulado',  title:'Simulado UNESP — Dia 1', desc:'Sáb 14h30–19h30. Preparação para Unesp.' },
+  { id:'b31', date:'2027-01-08', type:'simulado',  title:'Simulado UNESP — Dia 2', desc:'Dom 8h30–13h30.' },
+  { id:'b32', date:'2027-01-09', type:'vestibular', title:'UNESP — Dia 1', desc:'Prova oficial da Unesp. Última grande prova da temporada.' },
+  { id:'b33', date:'2027-01-10', type:'vestibular', title:'UNESP — Dia 2', desc:'Ciências da Natureza. Chegue descansado.' },
+  // UNIFESP
+  { id:'b34', date:'2026-12-17', type:'vestibular', title:'UNIFESP — Dia 1', desc:'Prova da UNIFESP.' },
+  { id:'b35', date:'2026-12-18', type:'vestibular', title:'UNIFESP — Dia 2', desc:'Segundo dia UNIFESP.' },
+  // Sem atividade escolar (ciclo zero)
+  { id:'b36', date:'2026-07-13', type:'folga',     title:'Ciclo Zero — Sem atividade', desc:'Sem atividade programada no cursinho.' },
+  { id:'b37', date:'2026-07-14', type:'folga',     title:'Sem atividade escolar', desc:'Feriado ou recesso. Revisão opcional.' },
 ];
 
-function renderCalendar() {
+// ── Estado do calendário ──────────────────────────
+let icalView = 'month'; // 'month' | 'week' | 'day'
+let icalCurrentDate = new Date();
+let icalSelectedDate = new Date();
+let icalFilters = { simulado:true, revisao:true, vestibular:true, estudo:true, folga:true, tarefa:true };
+let icalDragId = null;
+let icalEditingId = null;
+let icalSelectedType = 'tarefa';
+
+// ── Persistência ──────────────────────────────────
+function icalLoad() {
+  const raw = loadData('ical_user_events', []);
+  return Array.isArray(raw) ? raw : [];
+}
+function icalSave(events) {
+  saveData('ical_user_events', events);
+}
+function icalLoadDone() { return loadData('ical_done', {}); }
+function icalSaveDone(done) { saveData('ical_done', done); }
+
+function icalGetAllEvents() {
+  const user = icalLoad();
+  return [...ICAL_BASE_EVENTS, ...user];
+}
+
+function icalEventsForDate(dateStr) {
+  return icalGetAllEvents().filter(e => e.date === dateStr && icalFilters[e.type]);
+}
+
+// ── Helpers ───────────────────────────────────────
+function icalFmtDateStr(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function icalParseDate(str) {
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MONTHS_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const DAYS_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function icalIsToday(d) {
+  const t = new Date(); return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate();
+}
+
+// ── Renderização principal ────────────────────────
+function renderInteractiveCalendar() {
   const el = document.getElementById('cal-content');
   if (!el) return;
 
-  const now = new Date();
-
-  // Sort events
-  const sorted = [...CALENDAR_EVENTS].sort((a,b) => a.date - b.date);
-
-  // Phases
-  const phases = [
-    { key:'estudo', title:'Fase de Conteúdo', badge:'estudo', dates:'mai – ago 2026', cardClass:'fase-estudo',
-      desc:'Você está aqui. Foco em avançar nos livros (L2 em todas as frentes). Meta: terminar L2 em Mat, Fís, Qui e Por até agosto. Simulados mensais como termômetro, não como objetivo principal.' },
-    { key:'revisao', title:'Fase de Revisão & Simulados', badge:'revisao', dates:'set – out 2026', cardClass:'fase-revisao',
-      desc:'Reduz conteúdo novo ao mínimo. Revisão espaçada intensiva de tudo que foi estudado. Simulados semanais com correção analítica. Identifique os 3 tópicos mais fracos e cirurgie neles.' },
-    { key:'reta_final', title:'Reta Final', badge:'simulado', dates:'nov 2026', cardClass:'fase-simulado',
-      desc:'Semana S-1: provas anteriores da FUVEST para revisão. Zero conteúdo novo. Foco em velocidade, gestão do tempo e controle emocional. UNICAMP 1ª fase: 18/out · FUVEST 1ª fase: 15/nov. (80 questões no novo formato).' },
-    { key:'segunda', title:'2ª Fase & Demais Vestibulares', badge:'vestibular', dates:'nov 2026 – jan 2027', cardClass:'fase-vestibular',
-      desc:'UNICAMP 2ª fase: 29–30/nov. FUVEST 2ª fase: 13–14/dez. Unesp: jan/2027. Redação e questões dissertativas exigem prática específica — treine dissertativas desde setembro.' },
-  ];
-
-  let html = '<div class="cal-phases">';
-  phases.forEach(p => {
-    html += `<div class="cal-phase-card ${p.cardClass} reveal">
-      <span class="cal-phase-badge ${p.badge}">${p.badge === 'estudo' ? '📚 Conteúdo' : p.badge === 'revisao' ? '🔁 Revisão' : p.badge === 'simulado' ? '⚡ Reta Final' : '🎯 Vestibulares'}</span>
-      <div class="cal-phase-title">${p.title}</div>
-      <div class="cal-phase-date">${p.dates}</div>
-      <div class="cal-phase-desc">${p.desc}</div>
-    </div>`;
-  });
-  html += '</div>';
-
-  // Timeline of upcoming events
-  const upcoming = sorted.filter(e => e.date >= now);
-  const past = sorted.filter(e => e.date < now);
-
-  function daysTag(d) {
-    const diff = Math.ceil((d - now) / (1000*60*60*24));
-    if (diff <= 7)  return `<span class="cal-days-badge urgent">⚠ ${diff}d</span>`;
-    if (diff <= 30) return `<span class="cal-days-badge near">⏳ ${diff}d</span>`;
-    return `<span class="cal-days-badge ok">📅 ${diff}d</span>`;
-  }
-
-  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  function fmtDate(d) { return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`; }
-
-  html += '<div class="cal-timeline">';
-  html += '<div class="cal-timeline-title">⏱ Próximos eventos</div>';
-  if (upcoming.length === 0) {
-    html += '<p style="color:var(--muted2);font-size:13px;">Todos os eventos já passaram. Parabéns pela jornada!</p>';
-  } else {
-    upcoming.forEach(ev => {
-      html += `<div class="cal-event">
-        <div class="cal-event-dot" style="background:${ev.color}"></div>
-        <div class="cal-event-date">${fmtDate(ev.date)}${daysTag(ev.date)}</div>
-        <div class="cal-event-content">
-          <div class="cal-event-title">${ev.title}</div>
-          <div class="cal-event-desc">${ev.desc}</div>
-        </div>
-      </div>`;
-    });
-  }
-  html += '</div>';
-
-  if (past.length > 0) {
-    html += `<div class="cal-timeline" style="margin-top:28px;opacity:.55">
-      <div class="cal-timeline-title" style="color:var(--muted2)">✓ Eventos já realizados</div>`;
-    [...past].reverse().forEach(ev => {
-      html += `<div class="cal-event">
-        <div class="cal-event-dot" style="background:${ev.color};opacity:.4"></div>
-        <div class="cal-event-date" style="color:var(--muted2)">${fmtDate(ev.date)}</div>
-        <div class="cal-event-content">
-          <div class="cal-event-title" style="color:var(--muted)">${ev.title}</div>
-        </div>
-      </div>`;
-    });
-    html += '</div>';
-  }
-
-  // Estratégia
-  const semanasAte1a = Math.max(0, Math.floor((new Date(2026,10,15) - now) / (7*24*3600*1000)));
-  html += `<div class="cal-estrategia">
-    <h4>🎯 Estratégia baseada no calendário</h4>
-    <p>Faltam <strong>~${semanasAte1a} semanas</strong> para a FUVEST 1ª fase (15/nov/2026). 
-    Com <strong>4h30 de estudo por dia</strong>, você tem aproximadamente <strong>${semanasAte1a * 27} horas</strong> de estudo ainda disponíveis.</p>
-    <p style="margin-top:10px">📌 <strong>Prioridade até agosto:</strong> Fechar L2 de Matemática F1, F2, F3 e avançar em Física e Química. Português: cobrir toda a Literatura até setembro.</p>
-    <p style="margin-top:8px">📌 <strong>Setembro–outubro:</strong> Simulados semanais + revisão espaçada intensiva. Identifique padrões de erro nos simulados Poliedro e corrija cirurgicamente.</p>
-    <p style="margin-top:8px">📌 <strong>Novembro:</strong> Zero conteúdo novo após 8/nov. Só revisão, simulados e controle emocional. Você chegará lá.</p>
+  // View tabs
+  let html = `
+  <div class="ical-view-tabs">
+    <button class="ical-view-tab ${icalView==='month'?'active':''}" onclick="icalSetView('month',this)">📅 Mensal</button>
+    <button class="ical-view-tab ${icalView==='week'?'active':''}" onclick="icalSetView('week',this)">📆 Semanal</button>
+    <button class="ical-view-tab ${icalView==='day'?'active':''}" onclick="icalSetView('day',this)">📋 Diário</button>
   </div>`;
 
-  el.innerHTML = html;
+  // Toolbar
+  const label = icalView === 'month'
+    ? `${MONTHS_PT[icalCurrentDate.getMonth()]} ${icalCurrentDate.getFullYear()}`
+    : icalView === 'week'
+    ? `Semana de ${icalGetWeekStart(icalCurrentDate).getDate()} de ${MONTHS_SHORT[icalGetWeekStart(icalCurrentDate).getMonth()]}`
+    : `${icalCurrentDate.getDate()} de ${MONTHS_PT[icalCurrentDate.getMonth()]}`;
 
-  // Add reset swaps button after week table
-  const wt = document.getElementById('week-table-wrap');
-  if (wt && !document.getElementById('reset-swaps-btn')) {
-    const btn = document.createElement('button');
-    btn.id = 'reset-swaps-btn';
-    btn.textContent = '↺ Restaurar cronograma original';
-    btn.style.cssText = 'margin-top:12px;background:transparent;border:1px solid var(--border2);color:var(--muted2);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--font-b);transition:all .2s;display:block;';
-    btn.onmouseenter = () => { btn.style.color='var(--text)'; btn.style.borderColor='rgba(255,255,255,.3)'; };
-    btn.onmouseleave = () => { btn.style.color='var(--muted2)'; btn.style.borderColor='var(--border2)'; };
-    btn.onclick = resetWeekSwaps;
-    wt.appendChild(btn);
+  html += `
+  <div class="ical-toolbar">
+    <button class="ical-nav-btn" onclick="icalNavigate(-1)">‹</button>
+    <div class="ical-month-label">${label}</div>
+    <button class="ical-nav-btn" onclick="icalNavigate(1)">›</button>
+    <button class="ical-today-btn" onclick="icalGoToday()">Hoje</button>
+    <button class="ical-add-btn" onclick="icalOpenAdd('${icalFmtDateStr(icalCurrentDate)}')">+ Novo evento</button>
+  </div>`;
+
+  // Filtros
+  html += `<div class="ical-filters">`;
+  Object.entries(ICAL_TYPES).forEach(([key, t]) => {
+    html += `<div class="ical-filter ical-filter-${key==='simulado'?'sim':key==='revisao'?'rev':key==='vestibular'?'vest':key==='estudo'?'est':key==='folga'?'fol':'task'} ${icalFilters[key]?'on':''}" onclick="icalToggleFilter('${key}',this)">${t.icon} ${t.label}</div>`;
+  });
+  html += `</div>`;
+
+  // View content
+  if (icalView === 'month') html += icalRenderMonth();
+  else if (icalView === 'week') html += icalRenderWeek();
+  else html += icalRenderDay();
+
+  // Legenda
+  html += `<div class="ical-legend">`;
+  Object.entries(ICAL_TYPES).forEach(([, t]) => {
+    html += `<div class="ical-leg-item"><div class="ical-leg-dot" style="background:${t.color}"></div>${t.label}</div>`;
+  });
+  html += `</div>`;
+
+  el.innerHTML = html;
+  el.querySelectorAll('.reveal').forEach(e => setTimeout(()=>e.classList.add('visible'),50));
+  icalInitTypeModal();
+  icalInitDragDrop();
+}
+
+// ── Vista Mensal ──────────────────────────────────
+function icalRenderMonth() {
+  const y = icalCurrentDate.getFullYear(), m = icalCurrentDate.getMonth();
+  const firstDay = new Date(y, m, 1);
+  const lastDay = new Date(y, m+1, 0);
+  const done = icalLoadDone();
+  let startDow = firstDay.getDay(); // 0=sun
+  // Start week on Monday
+  let cells = [];
+  // Previous month padding
+  for (let i = startDow === 0 ? 6 : startDow-1; i > 0; i--) {
+    const d = new Date(y, m, 1-i);
+    cells.push({ date: d, other: true });
+  }
+  for (let d = 1; d <= lastDay.getDate(); d++) cells.push({ date: new Date(y, m, d), other: false });
+  // Next month padding
+  while (cells.length % 7 !== 0) {
+    const last = cells[cells.length-1].date;
+    cells.push({ date: new Date(last.getFullYear(), last.getMonth(), last.getDate()+1), other: true });
   }
 
-  el.querySelectorAll('.reveal').forEach(el2 => setTimeout(() => el2.classList.add('visible'), 50));
+  let html = `<div class="ical-month-grid">`;
+  ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].forEach(d => {
+    html += `<div class="ical-dow-header">${d}</div>`;
+  });
+  cells.forEach(cell => {
+    const ds = icalFmtDateStr(cell.date);
+    const events = icalEventsForDate(ds);
+    const isToday = icalIsToday(cell.date);
+    const classes = ['ical-day-cell', cell.other?'other-month':'', isToday?'today':''].filter(Boolean).join(' ');
+    html += `<div class="${classes}" ondragover="event.preventDefault();this.classList.add('drag-over-cell')" ondragleave="this.classList.remove('drag-over-cell')" ondrop="icalDrop(event,'${ds}')" onclick="icalDayClick('${ds}',event)">`;
+    html += `<div class="ical-day-num">${cell.date.getDate()}</div>`;
+    const visible = events.slice(0,3);
+    visible.forEach(ev => {
+      const t = ICAL_TYPES[ev.type] || ICAL_TYPES.tarefa;
+      const isDone = done[ev.id];
+      html += `<div class="ical-chip ${isDone?'done-chip':''}" style="background:${t.bg};color:${t.color};border:1px solid ${t.border}" draggable="true" ondragstart="icalDragStart(event,'${ev.id}')" onclick="event.stopPropagation();icalEditEvent('${ev.id}')" title="${ev.title}">${t.icon} ${ev.title.substring(0,22)}${ev.title.length>22?'…':''}</div>`;
+    });
+    if (events.length > 3) html += `<div class="ical-more-btn" onclick="event.stopPropagation();icalSetView('day');icalCurrentDate=icalParseDate('${ds}');renderInteractiveCalendar()">+${events.length-3} mais</div>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+  return html;
 }
+
+// ── Vista Semanal ─────────────────────────────────
+function icalGetWeekStart(d) {
+  const day = new Date(d);
+  const dow = day.getDay(); // 0=sun
+  const diff = dow === 0 ? -6 : 1 - dow; // Monday start
+  day.setDate(day.getDate() + diff);
+  return day;
+}
+function icalRenderWeek() {
+  const ws = icalGetWeekStart(icalCurrentDate);
+  const days = Array.from({length:7}, (_, i) => { const d = new Date(ws); d.setDate(ws.getDate()+i); return d; });
+  const done = icalLoadDone();
+  const hours = Array.from({length:14}, (_,i) => i+7); // 7am–20pm
+
+  let html = `<div class="ical-week-wrap"><div class="ical-week-header"><div class="ical-dow-header"></div>`;
+  days.forEach(d => {
+    html += `<div class="ical-week-dow"><div class="ical-week-dow-label">${DAYS_PT[d.getDay()]}</div><div class="ical-week-dow-num ${icalIsToday(d)?'today-num':''}">${d.getDate()}</div></div>`;
+  });
+  html += `</div><div class="ical-week-body"><div class="ical-week-time-col">`;
+  hours.forEach(h => { html += `<div class="ical-week-time-slot"><div class="ical-week-time-label">${h}h</div></div>`; });
+  html += `</div>`;
+  days.forEach(d => {
+    const ds = icalFmtDateStr(d);
+    const events = icalEventsForDate(ds);
+    html += `<div class="ical-week-day-col ${icalIsToday(d)?'today-col':''}" ondragover="event.preventDefault()" ondrop="icalDrop(event,'${ds}')" onclick="icalDayClick('${ds}',event)">`;
+    hours.forEach(() => { html += `<div class="ical-week-slot"></div>`; });
+    events.forEach((ev, i) => {
+      const t = ICAL_TYPES[ev.type] || ICAL_TYPES.tarefa;
+      const isDone = done[ev.id];
+      const top = (i * 30) + 4;
+      html += `<div class="ical-week-event ${isDone?'done-chip':''}" style="top:${top}px;background:${t.bg};color:${t.color};border-left:3px solid ${t.color}" draggable="true" ondragstart="icalDragStart(event,'${ev.id}')" onclick="event.stopPropagation();icalEditEvent('${ev.id}')">${t.icon} ${ev.title.substring(0,28)}${ev.title.length>28?'…':''}</div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  return html;
+}
+
+// ── Vista Diária ──────────────────────────────────
+function icalRenderDay() {
+  const ds = icalFmtDateStr(icalCurrentDate);
+  const events = icalEventsForDate(ds);
+  const done = icalLoadDone();
+  const dowName = DAYS_PT[icalCurrentDate.getDay()];
+
+  let html = `<div class="ical-day-view">
+    <div class="ical-day-header">
+      <div class="ical-day-big-num">${icalCurrentDate.getDate()}</div>
+      <div class="ical-day-info">
+        <div class="ical-day-name">${dowName}feira</div>
+        <div class="ical-day-month">${MONTHS_PT[icalCurrentDate.getMonth()]} ${icalCurrentDate.getFullYear()}</div>
+      </div>
+    </div>
+    <div class="ical-day-events-list">`;
+
+  if (events.length === 0) {
+    html += `<div class="ical-empty"><div class="ical-empty-icon">📋</div><div class="ical-empty-text">Nenhum evento neste dia.<br><span style="color:var(--accent);cursor:pointer" onclick="icalOpenAdd('${ds}')">+ Adicionar evento</span></div></div>`;
+  } else {
+    events.forEach(ev => {
+      const t = ICAL_TYPES[ev.type] || ICAL_TYPES.tarefa;
+      const isDone = done[ev.id];
+      html += `<div class="ical-day-event-row" style="border-left:3px solid ${t.color}">
+        <div class="ical-check-box ${isDone?'done':''}" onclick="icalToggleDone('${ev.id}')">${isDone?'✓':''}</div>
+        <div class="ical-day-event-dot" style="background:${t.color}"></div>
+        <div class="ical-day-event-body">
+          <div class="ical-day-event-title" style="${isDone?'text-decoration:line-through;opacity:.5':''}">${t.icon} ${ev.title}<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:${t.bg};color:${t.color};margin-left:4px">${t.label}</span></div>
+          ${ev.desc ? `<div class="ical-day-event-desc">${ev.desc}</div>` : ''}
+        </div>
+        <div class="ical-day-event-actions">
+          <button class="ical-ev-btn" onclick="icalToggleDone('${ev.id}')" title="Marcar concluído">${isDone?'↩':'✓'}</button>
+          <button class="ical-ev-btn" onclick="icalEditEvent('${ev.id}')" title="Editar">✎</button>
+        </div>
+      </div>`;
+    });
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+// ── Modal ─────────────────────────────────────────
+function icalInitTypeModal() {
+  const grid = document.getElementById('ical-type-grid');
+  if (!grid) return;
+  grid.innerHTML = Object.entries(ICAL_TYPES).map(([key, t]) => `
+    <button class="ical-type-btn ${icalSelectedType===key?'sel':''}" style="${icalSelectedType===key?`border-color:${t.color};background:${t.bg};color:${t.color}`:'color:var(--muted)'}" onclick="icalSelectType('${key}',this,'${t.color}','${t.bg}')" data-key="${key}">${t.icon} ${t.label}</button>
+  `).join('');
+}
+
+function icalSelectType(key, btn, color, bg) {
+  icalSelectedType = key;
+  document.querySelectorAll('.ical-type-btn').forEach(b => {
+    const t = ICAL_TYPES[b.dataset.key];
+    b.classList.remove('sel');
+    b.style.cssText = 'color:var(--muted)';
+  });
+  btn.classList.add('sel');
+  btn.style.cssText = `border-color:${color};background:${bg};color:${color}`;
+}
+
+function icalOpenAdd(dateStr) {
+  icalEditingId = null;
+  document.getElementById('ical-modal-title').textContent = '+ Novo evento';
+  document.getElementById('ical-inp-title').value = '';
+  document.getElementById('ical-inp-date').value = dateStr || icalFmtDateStr(icalCurrentDate);
+  document.getElementById('ical-inp-desc').value = '';
+  document.getElementById('ical-del-btn').style.display = 'none';
+  icalSelectedType = 'tarefa';
+  icalInitTypeModal();
+  document.getElementById('ical-modal-overlay').classList.add('open');
+}
+
+function icalEditEvent(id) {
+  const all = icalGetAllEvents();
+  const ev = all.find(e => e.id === id);
+  if (!ev) return;
+  const isBase = ICAL_BASE_EVENTS.some(e => e.id === id);
+  icalEditingId = isBase ? null : id; // base events = view only if not user
+  document.getElementById('ical-modal-title').textContent = isBase ? '📋 Detalhes do evento' : '✎ Editar evento';
+  document.getElementById('ical-inp-title').value = ev.title;
+  document.getElementById('ical-inp-date').value = ev.date;
+  document.getElementById('ical-inp-desc').value = ev.desc || '';
+  document.getElementById('ical-del-btn').style.display = isBase ? 'none' : '';
+  icalSelectedType = ev.type || 'tarefa';
+  icalInitTypeModal();
+  // For base events, we allow duplicate/copy as new
+  if (isBase) {
+    document.getElementById('ical-modal-title').textContent = '📋 Ver / Copiar evento';
+    document.getElementById('ical-del-btn').style.display = 'none';
+  }
+  document.getElementById('ical-modal-overlay').classList.add('open');
+}
+
+function icalCloseModal() {
+  document.getElementById('ical-modal-overlay').classList.remove('open');
+  icalEditingId = null;
+}
+
+function icalSaveEvent() {
+  const title = document.getElementById('ical-inp-title').value.trim();
+  const date = document.getElementById('ical-inp-date').value;
+  const desc = document.getElementById('ical-inp-desc').value.trim();
+  if (!title || !date) { document.getElementById('ical-inp-title').focus(); return; }
+  const users = icalLoad();
+  if (icalEditingId) {
+    const idx = users.findIndex(e => e.id === icalEditingId);
+    if (idx >= 0) users[idx] = { ...users[idx], title, date, desc, type: icalSelectedType };
+  } else {
+    users.push({ id: 'u_' + Date.now(), title, date, desc, type: icalSelectedType });
+  }
+  icalSave(users);
+  icalCloseModal();
+  // Navigate to event date
+  const [y,m,d] = date.split('-').map(Number);
+  icalCurrentDate = new Date(y, m-1, d);
+  renderInteractiveCalendar();
+}
+
+function icalDeleteCurrent() {
+  if (!icalEditingId) return;
+  if (!confirm('Remover este evento?')) return;
+  const users = icalLoad().filter(e => e.id !== icalEditingId);
+  icalSave(users);
+  icalCloseModal();
+  renderInteractiveCalendar();
+}
+
+function icalToggleDone(id) {
+  const done = icalLoadDone();
+  done[id] = !done[id];
+  icalSaveDone(done);
+  renderInteractiveCalendar();
+}
+
+// ── Navigation ────────────────────────────────────
+function icalNavigate(dir) {
+  if (icalView === 'month') {
+    icalCurrentDate = new Date(icalCurrentDate.getFullYear(), icalCurrentDate.getMonth() + dir, 1);
+  } else if (icalView === 'week') {
+    icalCurrentDate = new Date(icalCurrentDate.getFullYear(), icalCurrentDate.getMonth(), icalCurrentDate.getDate() + dir*7);
+  } else {
+    icalCurrentDate = new Date(icalCurrentDate.getFullYear(), icalCurrentDate.getMonth(), icalCurrentDate.getDate() + dir);
+  }
+  renderInteractiveCalendar();
+}
+
+function icalGoToday() {
+  icalCurrentDate = new Date();
+  renderInteractiveCalendar();
+}
+
+function icalSetView(v) {
+  icalView = v;
+  renderInteractiveCalendar();
+}
+
+function icalToggleFilter(key) {
+  icalFilters[key] = !icalFilters[key];
+  renderInteractiveCalendar();
+}
+
+function icalDayClick(ds, e) {
+  if (e.target.classList.contains('ical-chip') || e.target.classList.contains('ical-more-btn')) return;
+  icalCurrentDate = icalParseDate(ds);
+  if (icalView === 'month') {
+    icalView = 'day';
+  }
+  renderInteractiveCalendar();
+}
+
+// ── Drag & Drop ───────────────────────────────────
+function icalInitDragDrop() {}
+function icalDragStart(e, id) {
+  icalDragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.target.classList.add('dragging-chip');
+}
+function icalDrop(e, dateStr) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over-cell');
+  if (!icalDragId) return;
+  // Only allow moving user events
+  const users = icalLoad();
+  const idx = users.findIndex(ev => ev.id === icalDragId);
+  if (idx >= 0) {
+    users[idx] = { ...users[idx], date: dateStr };
+    icalSave(users);
+  }
+  icalDragId = null;
+  renderInteractiveCalendar();
+}
+
+// Override old renderCalendar to use new system
+function renderCalendar() { renderInteractiveCalendar(); }
 
 // ═══════════════════════════════════════════════
 // INIT
@@ -3156,13 +3567,17 @@ function renderCalendar() {
   const now = initDates();
   renderProgGrid();
   renderWeekTable();
-  renderCalendar();
+  renderInteractiveCalendar();
   renderQuotes(now);
   renderProvas();
   renderPopup(now);
   showDailyToast(now);
   initScrollReveal();
   renderQuiz();
+  // Modal overlay close on background click
+  document.getElementById('ical-modal-overlay')?.addEventListener('click', function(e) {
+    if (e.target === this) icalCloseModal();
+  });
 })();
 
 </script>
