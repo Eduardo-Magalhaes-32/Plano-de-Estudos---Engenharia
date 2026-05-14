@@ -2985,22 +2985,15 @@ function renderWeekTable() {
   // ── Pomodoro timing helper ─────────────────────────────────────────────
   function getPomoTiming() {
     try {
-      const cfg = loadData('study_config', null);
-      const metodo = (cfg && cfg.metodo) ? cfg.metodo : 'medio';
-      let estudoMin, pausaMin;
-      if (metodo === 'personalizado' && cfg) {
-        const blocos = cfg.blocos || numBlocosGlobal || 5;
-        const horas  = cfg.horas  || 4.5;
-        const pausa  = cfg.intervalo || 10;
-        const totalMin = Math.round(horas * 60);
-        estudoMin = Math.round((totalMin - pausa * (blocos - 1)) / blocos);
-        pausaMin  = pausa;
-      } else {
-        const m = METODOS_POMODORO[metodo] || METODOS_POMODORO['medio'];
-        estudoMin = m.estudo;
-        pausaMin  = m.pausa;
+      const raw = loadData('study_config', null);
+      const cfg = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (cfg && cfg.tempoEstudo && cfg.intervalo != null) {
+        return { estudoMin: cfg.tempoEstudo, pausaMin: cfg.intervalo };
       }
-      return { estudoMin, pausaMin };
+      // Fallback: derive from method
+      const metodo = (cfg && cfg.metodo) ? cfg.metodo : 'medio';
+      const m = METODOS_POMODORO[metodo] || METODOS_POMODORO['medio'];
+      return { estudoMin: m.estudo, pausaMin: m.pausa };
     } catch(e) {
       return { estudoMin: 50, pausaMin: 10 };
     }
@@ -3763,7 +3756,7 @@ function aplicarConfiguracoes() {
   // Persiste
   numBlocosGlobal = blocos;
   saveData('num_blocos', String(blocos));
-  saveData('study_config', JSON.stringify({ blocos, horas, metodo, intervalo }));
+  saveData('study_config', JSON.stringify({ blocos, horas, metodo, intervalo, tempoEstudo }));
 
   // Atualiza nota do cronograma
   const nota = document.querySelector('.week-note');
