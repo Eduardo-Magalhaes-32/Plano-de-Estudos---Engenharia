@@ -192,6 +192,8 @@ section { padding: 100px 80px; }
 .wc-sim { background: rgba(251,191,36,.1); color: #fcd34d; border: 1px solid rgba(251,191,36,.18); }
 .wc-des { background: transparent; color: var(--muted2); border: 1px dashed rgba(255,255,255,.07); font-size: 11px; }
 /* DYNAMIC CELL TOPICS */
+.wc-pomo { font-size: 9px; font-weight: 600; opacity: .65; margin-top: 4px; letter-spacing: .03em; display: flex; align-items: center; gap: 3px; justify-content: center; background: rgba(0,0,0,.18); border-radius: 4px; padding: 2px 5px; white-space: nowrap; }
+.wc-pomo .sep { opacity: .4; }
 .wc-topics { margin-top: 5px; display: flex; flex-direction: column; gap: 2px; width: 100%; }
 .wc-topic-pill {
   font-size: 9px;
@@ -2980,6 +2982,39 @@ function renderWeekTable() {
   // Build HTML
   const DOW_ORDER = [1,2,3,4,5,6,0]; // Seg=1, Ter=2, ..., Dom=0
 
+  // ── Pomodoro timing helper ─────────────────────────────────────────────
+  function getPomoTiming() {
+    try {
+      const cfg = loadData('study_config', null);
+      const metodo = (cfg && cfg.metodo) ? cfg.metodo : 'medio';
+      let estudoMin, pausaMin;
+      if (metodo === 'personalizado' && cfg) {
+        const blocos = cfg.blocos || numBlocosGlobal || 5;
+        const horas  = cfg.horas  || 4.5;
+        const pausa  = cfg.intervalo || 10;
+        const totalMin = Math.round(horas * 60);
+        estudoMin = Math.round((totalMin - pausa * (blocos - 1)) / blocos);
+        pausaMin  = pausa;
+      } else {
+        const m = METODOS_POMODORO[metodo] || METODOS_POMODORO['medio'];
+        estudoMin = m.estudo;
+        pausaMin  = m.pausa;
+      }
+      return { estudoMin, pausaMin };
+    } catch(e) {
+      return { estudoMin: 50, pausaMin: 10 };
+    }
+  }
+
+  const { estudoMin, pausaMin } = getPomoTiming();
+
+  function pomoBadge(cls) {
+    // Only show on actual study/review cells, not rest/sim
+    if (cls === 'wc-des') return '';
+    if (cls === 'wc-sim') return `<div class="wc-pomo">⏱ ${estudoMin}min</div>`;
+    return `<div class="wc-pomo">⏱ ${estudoMin}min <span class="sep">·</span> ${pausaMin}min pausa</div>`;
+  }
+
   function cellHtml(c, rowIdx, dowIdx, isToday) {
     // Get swap override if exists
     const sk = swapKey(rowIdx, dowIdx);
@@ -2997,7 +3032,7 @@ function renderWeekTable() {
       ondragover="onDragOver(event)"
       ondragleave="onDragLeave(event)"
       ondrop="onDrop(event,${rowIdx},${dowIdx})"
-    >${title}<div class="sub">${sub}</div></div>`;
+    >${title}<div class="sub">${sub}</div>${pomoBadge(cls)}</div>`;
   }
 
   // Override rest day cells — respeitando dayModes
@@ -3030,7 +3065,7 @@ function renderWeekTable() {
         const cls   = (mode === 'total') ? 'wc-des' : (mode === 'leve') ? 'wc-rev' : 'wc-rev';
         const title = (mode === 'total') ? '😴 Descanso' : '↩ Revisão extra';
         const sub   = (mode === 'total') ? '' : 'bloco extra';
-        html += `<div class="wc ${cls}${isToday?' today-col':''}" data-row="${r}" data-dow="${di}">${title}<div class="sub">${sub}</div></div>`;
+        html += `<div class="wc ${cls}${isToday?' today-col':''}" data-row="${r}" data-dow="${di}">${title}<div class="sub">${sub}</div>${pomoBadge(cls)}</div>`;
       }
       html += '</div>';
       continue;
