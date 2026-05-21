@@ -269,6 +269,48 @@ html[data-theme="light-green"] {
   --shadow-glow: 0 0 0 1px rgba(22,166,117,0.30), 0 16px 50px rgba(22,166,117,0.18);
 }
 
+/* — LIGHT + Purple — */
+html[data-theme="light-purple"] {
+  --bg: #f8f5fc; --bg2: #ffffff;
+  --surface: #ffffff; --surface2: #f3edfa; --surface3: #e8dff4;
+  --text: #1f1430; --muted: #5e4d80; --muted2: #9a8db5;
+  --border: rgba(40,20,80,0.06); --border2: rgba(40,20,80,0.12); --border3: rgba(40,20,80,0.22);
+  --accent: #7c3aed; --accent2: #5b21b6; --accent-soft: rgba(124,58,237,0.10);
+  --study: #7c3aed; --study2: #a78bfa;
+  --shadow-sm: 0 2px 8px rgba(40,20,80,0.06);
+  --shadow-md: 0 8px 24px rgba(40,20,80,0.10);
+  --shadow-lg: 0 24px 56px rgba(40,20,80,0.16);
+  --shadow-glow: 0 0 0 1px rgba(124,58,237,0.30), 0 16px 50px rgba(124,58,237,0.18);
+}
+
+/* — LIGHT + Amber — */
+html[data-theme="light-amber"] {
+  --bg: #fbf7ee; --bg2: #ffffff;
+  --surface: #ffffff; --surface2: #f8f0db; --surface3: #f1e5be;
+  --text: #2e2210; --muted: #76624d; --muted2: #aa9b85;
+  --border: rgba(80,60,20,0.06); --border2: rgba(80,60,20,0.12); --border3: rgba(80,60,20,0.22);
+  --accent: #d97706; --accent2: #b65a04; --accent-soft: rgba(217,119,6,0.12);
+  --study: #d97706; --study2: #f59e0b;
+  --shadow-sm: 0 2px 8px rgba(80,60,20,0.06);
+  --shadow-md: 0 8px 24px rgba(80,60,20,0.10);
+  --shadow-lg: 0 24px 56px rgba(80,60,20,0.16);
+  --shadow-glow: 0 0 0 1px rgba(217,119,6,0.30), 0 16px 50px rgba(217,119,6,0.18);
+}
+
+/* — LIGHT + Slate (neutral) — */
+html[data-theme="light-slate"] {
+  --bg: #f6f7f9; --bg2: #ffffff;
+  --surface: #ffffff; --surface2: #eef0f4; --surface3: #e3e6ed;
+  --text: #14171f; --muted: #525868; --muted2: #8a90a0;
+  --border: rgba(20,25,40,0.06); --border2: rgba(20,25,40,0.12); --border3: rgba(20,25,40,0.22);
+  --accent: #475569; --accent2: #334155; --accent-soft: rgba(71,85,105,0.10);
+  --study: #475569; --study2: #64748b;
+  --shadow-sm: 0 2px 8px rgba(20,25,40,0.06);
+  --shadow-md: 0 8px 24px rgba(20,25,40,0.10);
+  --shadow-lg: 0 24px 56px rgba(20,25,40,0.16);
+  --shadow-glow: 0 0 0 1px rgba(71,85,105,0.30), 0 16px 50px rgba(71,85,105,0.16);
+}
+
 /* ═══════════════════════════════════════════════════════════
    LIGHT-MODE GLOBAL OVERRIDES
    When any light-* theme active, swap shells/background patterns
@@ -388,8 +430,6 @@ html[data-theme^="light-"] .wc { color: var(--text); }
    ═══════════════════════════════════════════════════════════ */
 
 .app-shell {
-  display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr;
   min-height: 100vh;
   position: relative;
   z-index: 1;
@@ -399,13 +439,10 @@ html[data-theme^="light-"] .wc { color: var(--text); }
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
-  width: var(--sidebar-w);
   background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
   border-right: 1px solid var(--border);
-  padding: 22px 16px 18px;
   display: flex; flex-direction: column;
   z-index: 50;
-  transition: transform .35s cubic-bezier(.4,0,.2,1), width .35s cubic-bezier(.4,0,.2,1), padding .35s ease;
   overflow: hidden;
 }
 
@@ -438,29 +475,6 @@ html[data-theme^="light-"] .wc { color: var(--text); }
   color: var(--accent);
   text-shadow: 0 0 18px var(--accent), 0 0 32px var(--accent-soft);
 }
-
-/* Desktop collapse button — always visible, never cropped */
-.sb-collapse-btn {
-  width: 32px; height: 32px;
-  border-radius: 9px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  color: var(--muted);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: color .2s, border-color .2s, background .2s, transform .2s;
-  flex-shrink: 0;
-  margin-left: auto;
-  padding: 0;
-}
-.sb-collapse-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  box-shadow: 0 0 14px var(--accent-soft);
-}
-.sb-collapse-btn:active { transform: scale(0.94); }
-.sb-collapse-btn svg { width: 14px; height: 14px; transition: transform .35s; display: block; }
 
 .sidebar-nav {
   flex: 1;
@@ -579,22 +593,45 @@ html[data-theme^="light-"] .wc { color: var(--text); }
 }
 .sidebar-backdrop.show { display: block; opacity: 1; }
 
-/* ───────── SIDEBAR COLLAPSED (desktop) ───────── */
-body.sidebar-collapsed {
-  --sidebar-w: 76px;
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR — HOVER-EXPAND BEHAVIOR (desktop)
+   Default: 76px collapsed. On hover: 260px expanded, overlays content.
+   On mobile: behaves as drawer (different rules in css_responsive)
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --sidebar-w-collapsed: 76px;
+  --sidebar-w-expanded: 260px;
 }
-body.sidebar-collapsed .sidebar { padding: 22px 12px 18px; }
-body.sidebar-collapsed .sidebar-logo { justify-content: center; padding: 0 0 18px; }
-body.sidebar-collapsed .sb-logo-text { display: none; }
-body.sidebar-collapsed .sb-collapse-btn svg { transform: rotate(180deg); }
-body.sidebar-collapsed .nav-group-title,
-body.sidebar-collapsed .nav-section-label { opacity: 0; height: 0; padding: 0; pointer-events: none; }
-body.sidebar-collapsed .nav-item { justify-content: center; padding: 11px 8px; position: relative; }
-body.sidebar-collapsed .nav-item-label,
-body.sidebar-collapsed .nav-item-badge { display: none; }
-body.sidebar-collapsed .nav-item.active::before { left: -12px; }
-/* Tooltip on hover when collapsed */
-body.sidebar-collapsed .nav-item::after {
+
+/* Override base width to default collapsed */
+.sidebar {
+  width: var(--sidebar-w-collapsed);
+  padding: 22px 12px 18px;
+  /* Allow tooltip pseudo-elements to escape on collapsed state */
+}
+
+/* Smooth width animation on the sidebar itself */
+.sidebar { transition: width .35s cubic-bezier(.4,0,.2,1), padding .35s ease, transform .35s cubic-bezier(.4,0,.2,1); }
+
+/* Main content stays as if sidebar is collapsed — sidebar OVERLAYS when expanded */
+.main-content { margin-left: var(--sidebar-w-collapsed); transition: margin-left .35s cubic-bezier(.4,0,.2,1); }
+
+/* COLLAPSED VISUAL STATE (default desktop) */
+.sidebar-logo { justify-content: center; padding: 0 0 18px; gap: 0; }
+.sb-logo-text { display: none; }
+.sb-collapse-btn { display: none; } /* No collapse button — hover does it */
+.nav-group-title,
+.nav-section-label { opacity: 0; height: 0; padding: 0; pointer-events: none; overflow: hidden; transition: opacity .25s, height .25s, padding .25s; }
+.nav-item { justify-content: center; padding: 11px 8px; position: relative; }
+.nav-item-label,
+.nav-item-badge { opacity: 0; max-width: 0; overflow: hidden; pointer-events: none; transition: opacity .2s, max-width .35s; }
+.nav-item.active::before { left: -12px; }
+.sidebar-user { padding: 8px; justify-content: center; }
+.sb-user-info { display: none; }
+.sb-logout { display: none; }
+
+/* Tooltip on hover when collapsed (visible only when fully collapsed) */
+.nav-item::after {
   content: attr(data-label);
   position: absolute;
   left: calc(100% + 14px);
@@ -612,14 +649,75 @@ body.sidebar-collapsed .nav-item::after {
   transition: opacity .15s;
   z-index: 200;
   box-shadow: var(--shadow-md);
+  font-family: var(--font-b);
+  font-weight: 500;
 }
-body.sidebar-collapsed .nav-item:hover::after { opacity: 1; }
-body.sidebar-collapsed .sidebar-user {
-  padding: 8px;
-  justify-content: center;
+.nav-item:hover::after { opacity: 1; }
+
+/* ───── EXPANDED on HOVER ───── */
+.sidebar:hover,
+.sidebar.is-expanded,
+.sidebar.open {
+  width: var(--sidebar-w-expanded);
+  padding: 22px 16px 18px;
+  box-shadow: 24px 0 60px rgba(0,0,0,0.4);
 }
-body.sidebar-collapsed .sb-user-info { display: none; }
-body.sidebar-collapsed .sb-logout { display: none; }
+.sidebar:hover .sidebar-logo,
+.sidebar.is-expanded .sidebar-logo,
+.sidebar.open .sidebar-logo {
+  justify-content: flex-start;
+  padding: 0 4px 18px;
+  gap: 8px;
+}
+.sidebar:hover .sb-logo-text,
+.sidebar.is-expanded .sb-logo-text,
+.sidebar.open .sb-logo-text {
+  display: inline-block;
+}
+.sidebar:hover .nav-group-title,
+.sidebar.is-expanded .nav-group-title,
+.sidebar.open .nav-group-title {
+  opacity: 1;
+  height: auto;
+  padding: 14px 12px 8px;
+  pointer-events: auto;
+}
+.sidebar:hover .nav-item,
+.sidebar.is-expanded .nav-item,
+.sidebar.open .nav-item {
+  justify-content: flex-start;
+  padding: 10px 12px;
+}
+.sidebar:hover .nav-item-label,
+.sidebar.is-expanded .nav-item-label,
+.sidebar.open .nav-item-label,
+.sidebar:hover .nav-item-badge,
+.sidebar.is-expanded .nav-item-badge,
+.sidebar.open .nav-item-badge {
+  opacity: 1;
+  max-width: 160px;
+  pointer-events: auto;
+}
+.sidebar:hover .nav-item.active::before,
+.sidebar.is-expanded .nav-item.active::before {
+  left: -16px;
+}
+/* Hide tooltips when expanded */
+.sidebar:hover .nav-item::after,
+.sidebar.is-expanded .nav-item::after,
+.sidebar.open .nav-item::after { display: none; }
+.sidebar:hover .sidebar-user,
+.sidebar.is-expanded .sidebar-user,
+.sidebar.open .sidebar-user {
+  padding: 12px;
+  justify-content: flex-start;
+}
+.sidebar:hover .sb-user-info,
+.sidebar.is-expanded .sb-user-info,
+.sidebar.open .sb-user-info { display: block; }
+.sidebar:hover .sb-logout,
+.sidebar.is-expanded .sb-logout,
+.sidebar.open .sb-logout { display: flex; }
 
 /* ───────── TOPBAR ───────── */
 .topbar {
@@ -846,10 +944,8 @@ body.sidebar-collapsed .sb-logout { display: none; }
 
 /* ───────── MAIN CONTENT ───────── */
 .main-content {
-  margin-left: var(--sidebar-w);
   min-height: 100vh;
   position: relative;
-  transition: margin-left .35s cubic-bezier(.4,0,.2,1);
 }
 .screens-wrap { padding: 32px 40px 80px; max-width: 1320px; margin: 0 auto; }
 
@@ -2987,55 +3083,12 @@ section { padding: 0 !important; background: transparent !important; }
 /* ═══════════════════════════════════════════════════════════
    POPUP HOJE (floating - scroll-acompanhante)
    ═══════════════════════════════════════════════════════════ */
-#popup-hoje {
-  position: fixed;
-  right: 28px;
-  top: 50%; transform: translateY(-50%);
-  width: 290px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 18px;
-  box-shadow: var(--shadow-lg);
-  z-index: 90;
-  padding: 18px 18px 22px;
-  transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .25s;
-}
-#popup-hoje.hidden { transform: translateY(-50%) translateX(120%); opacity: 0; pointer-events: none; }
-.popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.popup-title { font-family: var(--font-d); font-size: 13px; font-weight: 700; color: var(--accent); }
-.popup-toggle {
-  width: 22px; height: 22px;
-  background: var(--surface2); border: none;
-  border-radius: 6px; color: var(--muted);
-  cursor: pointer; font-size: 14px; line-height: 1;
-}
-.popup-day { font-family: var(--font-d); font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-.popup-sub { font-size: 10.5px; color: var(--muted2); margin-bottom: 12px; letter-spacing: .04em; }
-.popup-item {
-  padding: 9px 11px;
-  margin-bottom: 6px;
-  border-radius: 9px;
-  background: var(--surface2);
-  font-size: 11.5px;
-  border-left: 2.5px solid var(--accent);
-}
-.popup-item.is-rest { border-color: var(--muted2); color: var(--muted); font-style: italic; }
-.popup-item-subject { font-weight: 600; font-size: 12px; }
-.popup-item-topic { color: var(--muted); margin-top: 2px; font-size: 11px; }
-
-.popup-min-btn {
-  position: fixed;
-  right: 28px; top: 50%; transform: translateY(-50%);
-  background: var(--accent);
-  color: #fff; border: none;
-  padding: 9px 14px;
-  border-radius: 99px;
-  font-size: 12px; font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 20px var(--accent-soft);
-  display: none;
-  z-index: 89;
-  font-family: inherit;
+/* ═══════════════════════════════════════════════════════════
+   FLOATING ELEMENTS (popup, island, fab) — SIMPLIFIED UX
+   The old popup-hoje is hidden — daily-island handles everything.
+   ═══════════════════════════════════════════════════════════ */
+#popup-hoje, .popup-min-btn, #island-pill, #island-reopen-btn {
+  display: none !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3045,67 +3098,209 @@ section { padding: 0 !important; background: transparent !important; }
   position: fixed;
   bottom: 24px;
   left: 50%; transform: translateX(-50%);
-  width: 90%; max-width: 580px;
-  background: rgba(17,17,30,0.94);
+  width: calc(100vw - 48px);
+  max-width: 620px;
+  background: rgba(17,17,30,0.96);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border2);
   border-radius: 22px;
   z-index: 80;
   overflow: hidden;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--accent-soft);
+  transition: transform .4s cubic-bezier(.4,0,.2,1), opacity .25s;
+  display: block;
+}
+html[data-theme^="light-"] #daily-island {
+  background: rgba(255,255,255,0.96);
   box-shadow: var(--shadow-lg);
-  transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .25s;
 }
-html[data-theme^="light-"] #daily-island { background: rgba(255,255,255,0.94); }
-#daily-island.hidden { transform: translateX(-50%) translateY(180%); opacity: 0; pointer-events: none; }
-.island-stripe { height: 2px; background: var(--accent); }
-.island-inner { display: flex; align-items: center; gap: 14px; padding: 14px 18px 14px 14px; position: relative; }
-.island-img-wrap { width: 64px; height: 64px; border-radius: 14px; overflow: hidden; flex-shrink: 0; background: var(--surface2); }
-.island-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.island-text { flex: 1; min-width: 0; }
-.island-text strong { font-family: var(--font-d); font-size: 14px; font-weight: 700; color: var(--text); }
-.island-text p { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
-.island-stats { display: flex; gap: 14px; flex-shrink: 0; }
-.island-stat-num { font-family: var(--font-d); font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
-.island-stat-label { font-size: 9.5px; color: var(--muted2); letter-spacing: .04em; text-transform: uppercase; }
-.island-close-btn {
-  position: absolute; top: 6px; right: 8px;
-  background: transparent; border: none;
-  color: var(--muted2); cursor: pointer;
-  font-size: 14px; width: 22px; height: 22px;
-  border-radius: 6px;
+#daily-island.hidden,
+#daily-island.is-closed {
+  transform: translateX(-50%) translateY(140%);
+  opacity: 0;
+  pointer-events: none;
 }
-.island-close-btn:hover { color: var(--text); background: var(--surface3); }
 
-#island-pill {
-  position: fixed; bottom: 24px;
-  left: 50%; transform: translateX(-50%);
-  background: rgba(17,17,30,0.94);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border2);
-  padding: 10px 18px;
-  border-radius: 99px;
-  display: none; gap: 10px; align-items: center;
-  z-index: 80;
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
+.island-stripe {
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2, var(--accent)));
+  box-shadow: 0 0 12px var(--accent-soft);
+}
+
+.island-inner {
+  padding: 14px 18px 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.island-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.island-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.island-emoji {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.island-text {
+  flex: 1;
+  min-width: 0;
+}
+.island-text h4 {
+  font-family: var(--font-d);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 2px;
+  letter-spacing: -0.01em;
+}
+.island-text p {
   font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.45;
 }
-html[data-theme^="light-"] #island-pill { background: rgba(255,255,255,0.94); }
-#island-pill .pill-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 6px var(--accent); }
 
-#island-fab {
-  position: fixed; bottom: 24px; right: 24px;
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  background: var(--accent); color: #fff;
-  border: none; cursor: pointer;
-  font-size: 20px;
-  display: none; align-items: center; justify-content: center;
-  z-index: 80;
-  box-shadow: 0 8px 24px var(--accent-soft);
-  transition: all .2s;
+/* CLOSE button — clear and clickable */
+.island-close {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: color .2s, background .2s, border-color .2s;
+  padding: 0;
 }
-#island-fab:hover { transform: scale(1.06); }
+.island-close:hover {
+  color: var(--text);
+  background: var(--surface3);
+  border-color: var(--border3);
+}
+.island-close:active { transform: scale(0.94); }
+
+.island-stats {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0 4px;
+}
+.island-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.island-stat-num {
+  font-family: var(--font-d);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.island-stat-label {
+  font-size: 9.5px;
+  color: var(--muted2);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.island-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.island-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: var(--surface3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.island-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent));
+  border-radius: 99px;
+  transition: width .35s ease;
+  box-shadow: 0 0 8px var(--accent-soft);
+}
+.island-bar-pct {
+  font-family: var(--font-d);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 38px;
+  text-align: right;
+}
+.island-day-tag {
+  font-size: 11px;
+  color: var(--muted2);
+  letter-spacing: .04em;
+  margin-top: 2px;
+}
+
+.island-review {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+.island-review-title {
+  font-size: 11px;
+  color: var(--muted2);
+  font-weight: 600;
+  letter-spacing: .04em;
+  margin-bottom: 6px;
+}
+#island-review-items {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+/* FAB — only shows when island is closed */
+#island-fab {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 80;
+  box-shadow: 0 10px 28px var(--accent-soft), 0 0 0 1px var(--accent-soft);
+  transition: transform .2s, box-shadow .2s;
+}
+#island-fab.show {
+  display: flex;
+  animation: fabPopIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+#island-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 32px var(--accent), 0 0 0 2px var(--accent-soft);
+}
+#island-fab:active { transform: scale(0.96); }
+@keyframes fabPopIn {
+  0% { opacity: 0; transform: scale(0.6) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
 
 /* ═══════════════════════════════════════════════════════════
    FOOTER
@@ -3151,28 +3346,30 @@ html[data-theme^="light-"] #island-pill { background: rgba(255,255,255,0.94); }
 @media (max-width: 768px) {
   body { font-size: 14px; }
 
-  /* Sidebar becomes drawer */
+  /* Sidebar: drawer behavior — overrides desktop hover-expand */
   .sidebar {
     transform: translateX(-100%);
-    width: 280px;
+    width: 280px !important;
+    padding: 22px 16px 18px !important;
     box-shadow: var(--shadow-lg);
   }
   .sidebar.open { transform: translateX(0); }
+  /* Disable hover-expand on mobile */
+  .sidebar:hover { width: 280px !important; padding: 22px 16px 18px !important; }
   .main-content { margin-left: 0 !important; }
   .menu-toggle { display: flex; }
-  .sb-collapse-btn { display: none; } /* no collapse on mobile (drawer instead) */
 
-  /* Disable desktop collapsed mode on mobile */
-  body.sidebar-collapsed { --sidebar-w: 280px; }
-  body.sidebar-collapsed .sidebar { padding: 22px 16px 18px; }
-  body.sidebar-collapsed .sb-logo-text { display: inline; }
-  body.sidebar-collapsed .nav-item { justify-content: flex-start; padding: 10px 12px; }
-  body.sidebar-collapsed .nav-item-label,
-  body.sidebar-collapsed .nav-item-badge { display: inline-flex; }
-  body.sidebar-collapsed .nav-group-title { opacity: 1; height: auto; padding: 14px 12px 8px; pointer-events: auto; }
-  body.sidebar-collapsed .nav-item::after { display: none; }
-  body.sidebar-collapsed .sb-user-info { display: block; }
-  body.sidebar-collapsed .sb-logout { display: flex; }
+  /* On mobile, always show full text — no collapsed mode */
+  .sidebar .sidebar-logo { justify-content: flex-start !important; padding: 0 4px 18px !important; gap: 8px !important; }
+  .sidebar .sb-logo-text { display: inline-block !important; }
+  .sidebar .nav-item { justify-content: flex-start !important; padding: 10px 12px !important; }
+  .sidebar .nav-item-label,
+  .sidebar .nav-item-badge { opacity: 1 !important; max-width: 200px !important; pointer-events: auto !important; }
+  .sidebar .nav-group-title { opacity: 1 !important; height: auto !important; padding: 14px 12px 8px !important; pointer-events: auto !important; }
+  .sidebar .nav-item::after { display: none !important; }
+  .sidebar .sidebar-user { padding: 12px !important; justify-content: flex-start !important; }
+  .sidebar .sb-user-info { display: block !important; }
+  .sidebar .sb-logout { display: flex !important; }
 
   .topbar { padding: 0 14px; gap: 10px; height: 56px; }
   :root { --topbar-h: 56px; }
@@ -3432,11 +3629,6 @@ html[data-theme^="light-"] #island-pill { background: rgba(255,255,255,0.94); }
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <span class="sb-logo-text">FUVEST<em>.</em>2027</span>
-    <button class="sb-collapse-btn" id="sb-collapse-btn" type="button" aria-label="Recolher menu" title="Recolher menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </button>
   </div>
 
   <nav class="sidebar-nav" id="sidebar-nav">
@@ -3549,8 +3741,7 @@ html[data-theme^="light-"] #island-pill { background: rgba(255,255,255,0.94); }
     </button>
     <div class="theme-menu" id="theme-menu" role="menu"></div>
   </div>
-  <button class="topbar-btn" onclick="window.print()" title="Imprimir / Salvar PDF" type="button">⎙</button>
-</header>
+  </header>
 
 
   <div class="screens-wrap" id="screens-wrap">
@@ -4860,31 +5051,43 @@ function buildReviewList(now) {
 
 
 function minimizeIsland() {
-  document.getElementById('daily-island').classList.remove('show');
-  setTimeout(() => {
-    const pill = document.getElementById('island-pill');
-    pill.classList.remove('peek');
-    pill.classList.add('show');
-  }, 350);
+  // Properly hide the island and show the FAB so user can reopen
+  const island = document.getElementById('daily-island');
+  const fab = document.getElementById('island-fab');
+  if (island) island.classList.add('is-closed');
+  if (fab) fab.classList.add('show');
+  try { localStorage.setItem('fuvest27_island_closed', '1'); } catch(_){}
 }
 function expandIsland() {
-  const pill = document.getElementById('island-pill');
-  pill.classList.remove('show');
-  pill.classList.remove('peek');
-  setTimeout(() => document.getElementById('daily-island').classList.add('show'), 200);
+  const island = document.getElementById('daily-island');
+  const fab = document.getElementById('island-fab');
+  if (island) island.classList.remove('is-closed');
+  if (fab) fab.classList.remove('show');
+  try { localStorage.setItem('fuvest27_island_closed', '0'); } catch(_){}
 }
 function closeIsland() { minimizeIsland(); }
 function toggleIsland() {
   const island = document.getElementById('daily-island');
-  if (island.classList.contains('show')) { minimizeIsland(); }
-  else { expandIsland(); }
+  if (!island) return;
+  if (island.classList.contains('is-closed')) expandIsland();
+  else minimizeIsland();
 }
-function reopenIsland() {
-  document.getElementById('daily-island').classList.add('show');
-  const btn = document.getElementById('island-reopen-btn');
-  if (btn) btn.style.display = 'none';
-}
+function reopenIsland() { expandIsland(); }
 function closeToast() { closeIsland(); }
+
+// Restore island state on load
+(function restoreIslandState(){
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      if (localStorage.getItem('fuvest27_island_closed') === '1') {
+        const island = document.getElementById('daily-island');
+        const fab = document.getElementById('island-fab');
+        if (island) island.classList.add('is-closed');
+        if (fab) fab.classList.add('show');
+      }
+    } catch(_){}
+  });
+})();
 
 // ═══════════════════════════════════════════════
 // POPUP HOJE
@@ -4894,44 +5097,35 @@ let popupVisible = loadData('popup_visible', true);
 function renderPopup(now) {
   const dow = now.getDay();
   const items = SCHEDULE[dow] || [];
-  document.getElementById('popup-day-name').textContent = DAY_NAMES[dow];
-  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  document.getElementById('popup-date-label').textContent = now.getDate()+' '+months[now.getMonth()];
+  const dayEl  = document.getElementById('popup-day-name');
+  const dateEl = document.getElementById('popup-date-label');
   const container = document.getElementById('popup-items');
-  container.innerHTML = items.map(item => `
-    <div class="popup-item">
-      <div class="popup-dot" style="background:${item.color}"></div>
-      <div class="popup-text"><strong>${item.subject}</strong>${item.detail}</div>
-    </div>
-  `).join('');
-  if (!popupVisible) {
-    document.getElementById('popup-hoje').classList.add('hidden');
-    document.getElementById('popup-min-btn').style.display = 'block';
+  if (dayEl) dayEl.textContent = DAY_NAMES[dow];
+  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  if (dateEl) dateEl.textContent = now.getDate()+' '+months[now.getMonth()];
+  if (container) {
+    container.innerHTML = items.map(item => `
+      <div class="popup-item">
+        <div class="popup-dot" style="background:${item.color}"></div>
+        <div class="popup-text"><strong>${item.subject}</strong>${item.detail}</div>
+      </div>
+    `).join('');
   }
 }
 
 function hidePopup() {
-  document.getElementById('popup-hoje').classList.add('hidden');
-  document.getElementById('popup-min-btn').style.display = 'block';
+  // No-op: popup-hoje is now permanently hidden — daily-island handles this UX
   popupVisible = false;
-  saveData('popup_visible', false);
+  try { saveData('popup_visible', false); } catch(_) {}
 }
 
 function showPopup() {
-  document.getElementById('popup-hoje').classList.remove('hidden');
-  document.getElementById('popup-min-btn').style.display = 'none';
+  // No-op: popup-hoje is now permanently hidden
   popupVisible = true;
-  saveData('popup_visible', true);
+  try { saveData('popup_visible', true); } catch(_) {}
 }
 
-// Sticky scroll
-window.addEventListener('scroll', () => {
-  const popup = document.getElementById('popup-hoje');
-  if (popupVisible) {
-    const y = Math.min(window.scrollY + 80, document.body.scrollHeight - 400);
-    popup.style.top = Math.max(80, 80) + 'px';
-  }
-});
+// Sticky scroll (no-op now that popup-hoje is hidden)
 
 // ═══════════════════════════════════════════════
 // PROVAS GRID
@@ -6696,17 +6890,12 @@ function toggleMobileSidebar() {
   else openSidebar();
 }
 
-/* ─── Desktop sidebar collapse ─── */
-function toggleSidebarCollapse() {
-  const collapsed = document.body.classList.toggle('sidebar-collapsed');
-  try { localStorage.setItem('fuvest27_sidebar_collapsed', collapsed ? '1' : '0'); } catch(_) {}
-}
+/* ─── Desktop sidebar: hover-expand (no manual collapse) ─── */
+function toggleSidebarCollapse() { /* deprecated — hover handles it now */ }
 function restoreSidebarCollapse() {
-  try {
-    if (localStorage.getItem('fuvest27_sidebar_collapsed') === '1') {
-      document.body.classList.add('sidebar-collapsed');
-    }
-  } catch(_) {}
+  // Clean up old persisted flag if present
+  try { localStorage.removeItem('fuvest27_sidebar_collapsed'); } catch(_) {}
+  document.body.classList.remove('sidebar-collapsed');
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -6719,9 +6908,12 @@ const THEMES = [
   { id: 'dark-purple', name: 'Roxo',           color: '#a78bfa', mode: 'dark'  },
   { id: 'dark-amber',  name: 'Âmbar',          color: '#fbbf24', mode: 'dark'  },
   { id: 'dark-pink',   name: 'Rosa',           color: '#fb7185', mode: 'dark'  },
-  { id: 'light-blue',  name: 'Azul · Claro',   color: '#4a6ce8', mode: 'light' },
-  { id: 'light-rose',  name: 'Rosa · Claro',   color: '#e84e6a', mode: 'light' },
-  { id: 'light-green', name: 'Verde · Claro',  color: '#16a675', mode: 'light' },
+  { id: 'light-blue',   name: 'Azul · Claro',   color: '#4a6ce8', mode: 'light' },
+  { id: 'light-rose',   name: 'Rosa · Claro',   color: '#e84e6a', mode: 'light' },
+  { id: 'light-green',  name: 'Verde · Claro',  color: '#16a675', mode: 'light' },
+  { id: 'light-purple', name: 'Roxo · Claro',   color: '#7c3aed', mode: 'light' },
+  { id: 'light-amber',  name: 'Âmbar · Claro',  color: '#d97706', mode: 'light' },
+  { id: 'light-slate',  name: 'Cinza · Claro',  color: '#475569', mode: 'light' },
 ];
 
 function applyTheme(themeId) {
