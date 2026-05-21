@@ -1800,6 +1800,12 @@ section { padding: 0 !important; background: transparent !important; }
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+.pomo-stats.pomo-stats-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.pomo-stats.pomo-stats-3 .pomo-stat { padding: 12px 8px; }
+.pomo-stats.pomo-stats-3 .pomo-stat-value { font-size: 22px; }
 .pomo-stat {
   background: var(--surface2);
   border-radius: 12px;
@@ -4077,14 +4083,6 @@ html[data-theme^="light-"] #daily-island {
             <input type="number" min="1" max="60" id="pomo-set-rest" />
           </div>
           <div class="pomo-setting-row">
-            <label for="pomo-set-long">Descanso longo (min)</label>
-            <input type="number" min="5" max="60" id="pomo-set-long" />
-          </div>
-          <div class="pomo-setting-row">
-            <label for="pomo-set-cbl">Ciclos p/ descanso longo</label>
-            <input type="number" min="2" max="8" id="pomo-set-cbl" />
-          </div>
-          <div class="pomo-setting-row">
             <label for="pomo-set-cycles">Total de ciclos</label>
             <input type="number" min="1" max="12" id="pomo-set-cycles" />
           </div>
@@ -4095,7 +4093,7 @@ html[data-theme^="light-"] #daily-island {
         <div class="pomo-card-head">
           <h3>Hoje</h3>
         </div>
-        <div class="pomo-stats">
+        <div class="pomo-stats pomo-stats-3">
           <div class="pomo-stat">
             <div class="pomo-stat-value" id="pomo-stat-sessions">0</div>
             <div class="pomo-stat-label">sessões</div>
@@ -4107,10 +4105,6 @@ html[data-theme^="light-"] #daily-island {
           <div class="pomo-stat">
             <div class="pomo-stat-value"><span id="pomo-stat-cycle">1</span><span class="pomo-stat-slash">/</span><span id="pomo-stat-cycle-total">4</span></div>
             <div class="pomo-stat-label">ciclo atual</div>
-          </div>
-          <div class="pomo-stat">
-            <div class="pomo-stat-value pomo-stat-next" id="pomo-stat-next">estudo</div>
-            <div class="pomo-stat-label">próxima fase</div>
           </div>
         </div>
       </div>
@@ -7296,8 +7290,7 @@ const PomoApp = (() => {
   }
   function phaseLabel() {
     if (state.phase === 'study') return state.running ? '⚡ Estudando' : '⚡ Foco · estudo';
-    if (state.phase === 'rest') return state.running ? '☕ Descansando' : '☕ Pausa curta';
-    return state.running ? '🌙 Descanso longo' : '🌙 Pausa longa';
+    return state.running ? '☕ Descansando' : '☕ Pausa';
   }
   function phasePhrase() {
     // Always show the current method timing so user sees what they picked
@@ -7400,13 +7393,9 @@ const PomoApp = (() => {
     // Setting inputs
     const ip1 = document.getElementById('pomo-set-study');
     const ip2 = document.getElementById('pomo-set-rest');
-    const ip3 = document.getElementById('pomo-set-long');
-    const ip4 = document.getElementById('pomo-set-cbl');
     const ip5 = document.getElementById('pomo-set-cycles');
     if (ip1 && document.activeElement !== ip1) ip1.value = state.studyMin;
     if (ip2 && document.activeElement !== ip2) ip2.value = state.restMin;
-    if (ip3 && document.activeElement !== ip3) ip3.value = state.longRestMin;
-    if (ip4 && document.activeElement !== ip4) ip4.value = state.cyclesBeforeLong;
     if (ip5 && document.activeElement !== ip5) ip5.value = state.cyclesPlanned;
 
     // Sound toggle (checkbox)
@@ -7423,11 +7412,11 @@ const PomoApp = (() => {
     state.preset = key;
     state.studyMin = p.study;
     state.restMin = p.rest;
-    state.longRestMin = p.longRest;
-    state.cyclesBeforeLong = p.cyclesBeforeLong;
+    // No long rest — disabled
+    state.longRestMin = p.rest;
+    state.cyclesBeforeLong = 999;
     if (state.phase === 'study') { state.totalSeconds = state.studyMin * 60; state.secondsLeft = state.totalSeconds; }
-    else if (state.phase === 'rest') { state.totalSeconds = state.restMin * 60; state.secondsLeft = state.totalSeconds; }
-    else { state.totalSeconds = state.longRestMin * 60; state.secondsLeft = state.totalSeconds; }
+    else { state.totalSeconds = state.restMin * 60; state.secondsLeft = state.totalSeconds; }
     if (persist) save();
     // Bidirectional: reflect on cronograma config
     if (propagateToCronograma) {
@@ -7503,17 +7492,14 @@ const PomoApp = (() => {
     }
 
     if (wasStudy) {
-      // Decide which rest to start
-      const isLong = state.cycle % state.cyclesBeforeLong === 0;
-      state.phase = isLong ? 'longrest' : 'rest';
-      state.totalSeconds = (isLong ? state.longRestMin : state.restMin) * 60;
+      // Always go to short rest (no long rest)
+      state.phase = 'rest';
+      state.totalSeconds = state.restMin * 60;
       state.secondsLeft = state.totalSeconds;
     } else {
       // Rest finished -> start next study block
-      // If we're at the planned cycle, "rolling" — keep counting
       state.cycle = state.cycle + 1;
       if (state.cycle > state.cyclesPlanned) {
-        // Plan complete — stop and reset count to 1 but keep showing completion
         state.cycle = state.cyclesPlanned; // cap visually
       }
       state.phase = 'study';
@@ -7560,34 +7546,52 @@ const PomoApp = (() => {
   }
 
   // ─── Sync with cronograma config ───
-  // When user changes the método on the cronograma config, we mirror it here.
+  // The cronograma's study_config is the source of truth for blocks/timing.
+  // We always read the live computed values (tempoEstudo, intervalo, blocos)
+  // and reflect them in the Pomodoro — regardless of which preset is selected.
   function syncFromCronogramaSelect() {
     try {
       const sel = document.getElementById('cfg-metodo');
       const blocosSlider = document.getElementById('cfg-blocos');
-      if (sel && sel.value && PRESETS[sel.value]) {
-        setPreset(sel.value, false, false); // don't propagate back
-      } else if (sel && sel.value === 'personalizado') {
-        // Personalizado — read inputs
-        const studyInput = document.querySelector('#cfg-panel-blocos input[type="number"]');
-        const intervalo = document.getElementById('cfg-intervalo');
-        // Try to infer minutos por bloco from horas/blocos
-        const hrs = parseFloat(document.getElementById('cfg-horas')?.value || '4.5');
-        const bls = parseInt(blocosSlider?.value || '5');
-        const stm = bls > 0 ? Math.round((hrs * 60) / bls) : 50;
-        const rst = parseInt(intervalo?.value || '10');
-        state.preset = 'personalizado';
-        state.studyMin = stm > 0 ? stm : 50;
-        state.restMin = rst >= 0 ? rst : 10;
-        state.longRestMin = Math.max(state.restMin * 2, 15);
-        if (state.phase === 'study') state.totalSeconds = state.studyMin * 60;
-        else if (state.phase === 'rest') state.totalSeconds = state.restMin * 60;
-        else state.totalSeconds = state.longRestMin * 60;
-        if (!state.running) state.secondsLeft = state.totalSeconds;
-      }
-      // Sync planned cycles from blocos slider
+      const intervaloEl = document.getElementById('cfg-intervalo');
+      const horasEl = document.getElementById('cfg-horas');
+
       const bls = parseInt(blocosSlider?.value || '5');
-      if (bls > 0 && bls <= 12 && bls !== state.cyclesPlanned) {
+      const hrs = parseFloat(horasEl?.value || '4.5');
+      const intervalo = parseInt(intervaloEl?.value);
+      const metodoVal = sel?.value || 'medio';
+
+      // Read tempoEstudo from saved study_config (already computed by aplicarConfiguracoes)
+      // Falls back to computing from horas/blocos if not yet saved.
+      let studyMin;
+      try {
+        const saved = (typeof loadData === 'function') ? loadData('study_config') : null;
+        const cfg = saved ? (typeof saved === 'string' ? JSON.parse(saved) : saved) : null;
+        studyMin = cfg && cfg.tempoEstudo ? cfg.tempoEstudo : null;
+      } catch(_) { studyMin = null; }
+      if (!studyMin) {
+        const totalMin = hrs * 60;
+        studyMin = bls > 0 ? Math.round((totalMin - (isNaN(intervalo)?10:intervalo) * (bls - 1)) / bls) : 50;
+      }
+      const restMin = isNaN(intervalo) ? 10 : intervalo;
+
+      // Apply to state — cronograma is the source of truth
+      state.preset = (metodoVal && PRESETS[metodoVal]) ? metodoVal : 'personalizado';
+      state.studyMin = studyMin > 0 ? studyMin : 50;
+      state.restMin = restMin >= 0 ? restMin : 10;
+      // No long rest — removed by user request
+      state.longRestMin = state.restMin;
+      state.cyclesBeforeLong = 999; // effectively disable long rest
+
+      // Reset the current phase time if not running, so visible time matches
+      if (!state.running) {
+        if (state.phase === 'study') state.totalSeconds = state.studyMin * 60;
+        else state.totalSeconds = state.restMin * 60;
+        state.secondsLeft = state.totalSeconds;
+      }
+
+      // Cycles planned = number of blocks from cronograma
+      if (bls > 0 && bls <= 12) {
         state.cyclesPlanned = bls;
       }
       save();
@@ -7621,16 +7625,6 @@ const PomoApp = (() => {
       state.restMin = v; state.preset = 'personalizado';
       if (state.phase === 'rest' && !state.running) { state.totalSeconds = v*60; state.secondsLeft = v*60; }
       save(); render();
-    });
-    document.getElementById('pomo-set-long')?.addEventListener('change', (e) => {
-      const v = Math.max(5, Math.min(90, parseInt(e.target.value) || 25));
-      state.longRestMin = v;
-      if (state.phase === 'longrest' && !state.running) { state.totalSeconds = v*60; state.secondsLeft = v*60; }
-      save(); render();
-    });
-    document.getElementById('pomo-set-cbl')?.addEventListener('change', (e) => {
-      const v = Math.max(2, Math.min(8, parseInt(e.target.value) || 4));
-      state.cyclesBeforeLong = v; save(); render();
     });
     document.getElementById('pomo-set-cycles')?.addEventListener('change', (e) => {
       const v = Math.max(1, Math.min(12, parseInt(e.target.value) || 5));
