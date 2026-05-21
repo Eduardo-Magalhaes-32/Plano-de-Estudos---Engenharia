@@ -1499,40 +1499,6 @@ section { padding: 0 !important; background: transparent !important; }
 }
 .pomo-card-title-icon { color: var(--accent); font-size: 14px; }
 
-/* Method preset grid */
-.pomo-methods-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.pomo-method {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: all .2s;
-  text-align: left;
-  color: var(--text);
-  font-family: var(--font-b);
-  display: flex; flex-direction: column; gap: 4px;
-}
-.pomo-method:hover { border-color: var(--border3); background: var(--surface3); }
-.pomo-method.active {
-  border-color: rgba(107,142,255,0.4);
-  background: rgba(107,142,255,0.10);
-  box-shadow: inset 0 0 0 1px rgba(107,142,255,0.2);
-}
-.pomo-method-name {
-  font-size: 12px; font-weight: 700;
-  display: flex; align-items: center; gap: 5px;
-}
-.pomo-method-times {
-  font-family: var(--font-m);
-  font-size: 10.5px;
-  color: var(--muted2);
-}
-.pomo-method.active .pomo-method-times { color: var(--accent); }
-
 /* Settings rows */
 .pomo-setting-row {
   display: flex; align-items: center;
@@ -1561,29 +1527,6 @@ section { padding: 0 !important; background: transparent !important; }
   transition: border-color .15s;
 }
 .pomo-setting-input:focus { border-color: var(--accent); }
-
-/* Toggle switch */
-.pomo-toggle {
-  position: relative;
-  width: 38px; height: 22px;
-  background: var(--surface3);
-  border-radius: 99px;
-  cursor: pointer;
-  transition: background .25s;
-  flex-shrink: 0;
-}
-.pomo-toggle::after {
-  content: '';
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 18px; height: 18px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform .25s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-.pomo-toggle.on { background: var(--accent); }
-.pomo-toggle.on::after { transform: translateX(16px); }
 
 /* Stats */
 .pomo-stats-grid {
@@ -1747,7 +1690,9 @@ section { padding: 0 !important; background: transparent !important; }
 .pomo-card:hover { border-color: var(--border2); }
 .pomo-card-head {
   display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 .pomo-card-head h3 {
   font-family: var(--font-d);
@@ -1791,49 +1736,62 @@ section { padding: 0 !important; background: transparent !important; }
   border-color: var(--accent);
 }
 
-/* Toggle */
+/* Toggle (sound) — clean & polished */
 .pomo-toggle {
   display: inline-flex; align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  position: relative;
+  user-select: none;
+  font-family: var(--font-b);
+  flex-shrink: 0;
 }
-.pomo-toggle input { display: none; }
+.pomo-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0; height: 0;
+}
 .pomo-toggle-slider {
-  width: 34px; height: 18px;
+  width: 38px; height: 22px;
   background: var(--surface3);
+  border: 1px solid var(--border2);
   border-radius: 99px;
   position: relative;
-  transition: background .2s;
+  transition: background .25s, border-color .25s, box-shadow .25s;
+  flex-shrink: 0;
+  display: inline-block;
 }
 .pomo-toggle-slider::after {
   content: '';
   position: absolute;
   top: 2px; left: 2px;
-  width: 14px; height: 14px;
+  width: 16px; height: 16px;
   background: #fff;
   border-radius: 50%;
-  transition: transform .25s;
+  transition: transform .25s, background .25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
 }
-.pomo-toggle input:checked + .pomo-toggle-slider {
+.pomo-toggle input:checked + .pomo-toggle-slider,
+.pomo-toggle input:checked ~ .pomo-toggle-slider {
   background: var(--accent);
-  box-shadow: 0 0 10px var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-soft);
 }
-.pomo-toggle input:checked + .pomo-toggle-slider::after {
+.pomo-toggle input:checked + .pomo-toggle-slider::after,
+.pomo-toggle input:checked ~ .pomo-toggle-slider::after {
   transform: translateX(16px);
 }
 .pomo-toggle-label {
   font-size: 11px;
   color: var(--muted);
-  letter-spacing: .04em;
+  letter-spacing: .08em;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
 }
-.pomo-toggle.on .pomo-toggle-slider {
-  background: var(--accent);
-}
-.pomo-toggle.on .pomo-toggle-slider::after {
-  transform: translateX(16px);
+.pomo-toggle input:checked ~ .pomo-toggle-label,
+.pomo-toggle:has(input:checked) .pomo-toggle-label {
+  color: var(--text);
 }
 
 /* Stats */
@@ -2984,18 +2942,85 @@ section { padding: 0 !important; background: transparent !important; }
 .ical-add-btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 18px var(--accent-soft); }
 
 /* MONTH VIEW */
-.ical-month-grid { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.ical-dow-header { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--muted); padding: 10px 0; letter-spacing: .04em; }
+.ical-month-grid {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.ical-dow-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: linear-gradient(180deg, var(--surface2), var(--surface));
+  border-bottom: 1px solid var(--border2);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 12px 0;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
 .ical-dow-header > div { text-align: center; }
-.ical-month-body { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(96px, auto); }
-.ical-day-cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 6px 7px; cursor: pointer; transition: background .2s; position: relative; }
+.ical-month-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(108px, auto);
+}
+.ical-day-cell {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 8px 6px;
+  cursor: pointer;
+  transition: background .2s;
+  position: relative;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
 .ical-day-cell:hover { background: var(--surface2); }
 .ical-day-cell:nth-child(7n) { border-right: none; }
-.ical-day-cell.other-month { opacity: .35; }
-.ical-day-cell.today { background: var(--accent-soft); }
-.ical-day-cell.today .ical-day-num { color: var(--accent); font-weight: 700; }
-.ical-day-num { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
-.ical-chip { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-bottom: 2px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ical-day-cell:nth-child(7n-1),
+.ical-day-cell:nth-child(7n) {
+  /* Sat & Sun subtle tint */
+  background: rgba(255,255,255,0.014);
+}
+html[data-theme^="light-"] .ical-day-cell:nth-child(7n-1),
+html[data-theme^="light-"] .ical-day-cell:nth-child(7n) {
+  background: rgba(0,0,0,0.018);
+}
+.ical-day-cell.other-month { opacity: .42; }
+.ical-day-cell.other-month .ical-day-num { color: var(--muted2); }
+.ical-day-cell.today {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.ical-day-cell.today .ical-day-num {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 14px;
+}
+.ical-day-num {
+  font-family: var(--font-d);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.ical-chip {
+  font-size: 10.5px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  margin-bottom: 0;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.005em;
+}
 .ical-chip.mat { background: rgba(91,143,255,.18); color: #aac4ff; }
 .ical-chip.fis { background: rgba(167,139,250,.18); color: #c3b3ff; }
 .ical-chip.qui { background: rgba(52,211,153,.18); color: #7ff0c3; }
@@ -3004,6 +3029,115 @@ section { padding: 0 !important; background: transparent !important; }
 .ical-chip.rev { background: rgba(255,255,255,.07); color: #d3d3e5; }
 .ical-chip.des { background: rgba(255,255,255,.04); color: var(--muted2); font-style: italic; }
 .ical-chip.user { background: rgba(107,142,255,.18); color: #b9cfff; }
+.ical-day-cell:nth-child(-n+7) { border-top: none; }
+.ical-day-cell:nth-last-child(-n+7) { border-bottom: none; }
+
+/* FILTERS (top row, above grid) */
+.ical-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+}
+.ical-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: var(--font-b);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s, transform .15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.ical-filter:hover {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text);
+}
+.ical-filter.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-soft);
+}
+.ical-filter.on:hover { background: var(--accent-soft); }
+
+/* Colored filter variants when ON */
+.ical-filter-sim.on  { background: rgba(251,191,36,0.15);  border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 10px rgba(251,191,36,0.20); }
+.ical-filter-rev.on  { background: rgba(167,139,250,0.15); border-color: #a78bfa; color: #c4b5fd; box-shadow: 0 0 10px rgba(167,139,250,0.20); }
+.ical-filter-vest.on { background: rgba(251,113,133,0.15); border-color: #fb7185; color: #fb7185; box-shadow: 0 0 10px rgba(251,113,133,0.20); }
+.ical-filter-est.on  { background: rgba(107,142,255,0.15); border-color: #6b8eff; color: #6b8eff; box-shadow: 0 0 10px rgba(107,142,255,0.20); }
+.ical-filter-fol.on  { background: rgba(180,180,200,0.10); border-color: #8585b0; color: #8585b0; box-shadow: 0 0 10px rgba(180,180,200,0.15); }
+.ical-filter-task.on { background: rgba(52,211,153,0.15);  border-color: #34d399; color: #34d399; box-shadow: 0 0 10px rgba(52,211,153,0.20); }
+
+/* Hide grid cells / drag-over visual */
+.ical-day-cell.drag-over-cell {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.ical-day-cell.has-events { /* optional emphasis */ }
+.ical-chip { cursor: pointer; transition: opacity .15s, transform .15s; }
+.ical-chip:hover { opacity: .85; transform: translateX(1px); }
+.ical-chip.done-chip { opacity: .5; text-decoration: line-through; }
+.ical-more-btn {
+  font-size: 10px;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.ical-more-btn:hover { background: var(--surface3); color: var(--text); }
+
+/* LEGEND (event type colors) */
+.ical-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 14px 0 18px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 12px;
+  align-items: center;
+}
+.ical-leg-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.ical-leg-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.ical-leg-ico { font-size: 13px; line-height: 1; }
+
+.ical-more-btn {
+  font-size: 10px;
+  color: var(--accent);
+  padding: 2px 4px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.ical-more-btn:hover { text-decoration: underline; }
+
+.drag-over-cell { background: var(--accent-soft) !important; outline: 2px dashed var(--accent); outline-offset: -2px; }
 
 /* WEEK VIEW */
 .ical-week-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
@@ -3928,9 +4062,9 @@ html[data-theme^="light-"] #daily-island {
         <div class="pomo-card-head">
           <h3>Personalizar</h3>
           <label class="pomo-toggle">
+            <span class="pomo-toggle-label">Som</span>
             <input type="checkbox" id="pomo-toggle-sound" checked />
             <span class="pomo-toggle-slider"></span>
-            <span class="pomo-toggle-label">Som</span>
           </label>
         </div>
         <div class="pomo-settings">
@@ -4143,7 +4277,7 @@ html[data-theme^="light-"] #daily-island {
 
         <div class="cfg-group">
           <span class="cfg-label">Tempo total (horas)</span>
-          <input class="cfg-input" type="number" id="cfg-horas" min="0.5" max="12" step="0.5" value="4.5">
+          <input class="cfg-input" type="number" id="cfg-horas" min="0.5" max="12" step="0.5" value="4.5" oninput="aplicarConfiguracoes(); if(window.PomoApp) PomoApp.syncFromCronogramaSelect();">
         </div>
 
         <div class="cfg-group">
@@ -4162,7 +4296,7 @@ html[data-theme^="light-"] #daily-island {
 
         <div class="cfg-group" id="cfg-intervalo-group">
           <span class="cfg-label">Intervalo (min)</span>
-          <input class="cfg-input" type="number" id="cfg-intervalo" min="0" max="60" value="10">
+          <input class="cfg-input" type="number" id="cfg-intervalo" min="0" max="60" value="10" oninput="aplicarConfiguracoes(); if(window.PomoApp) PomoApp.syncFromCronogramaSelect();">
         </div>
 
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
@@ -6107,7 +6241,7 @@ function renderInteractiveCalendar() {
   // Legenda
   html += `<div class="ical-legend">`;
   Object.entries(ICAL_TYPES).forEach(([, t]) => {
-    html += `<div class="ical-leg-item"><div class="ical-leg-dot" style="background:${t.color}"></div>${t.label}</div>`;
+    html += `<div class="ical-leg-item"><span class="ical-leg-dot" style="background:${t.color};color:${t.color}"></span><span class="ical-leg-ico">${t.icon}</span>${t.label}</div>`;
   });
   html += `</div>`;
 
@@ -6139,9 +6273,12 @@ function icalRenderMonth() {
   }
 
   let html = `<div class="ical-month-grid">`;
+  html += `<div class="ical-dow-header">`;
   ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].forEach(d => {
-    html += `<div class="ical-dow-header">${d}</div>`;
+    html += `<div>${d}</div>`;
   });
+  html += `</div>`;
+  html += `<div class="ical-month-body">`;
   cells.forEach(cell => {
     const ds = icalFmtDateStr(cell.date);
     const events = icalEventsForDate(ds);
@@ -6158,7 +6295,8 @@ function icalRenderMonth() {
     if (events.length > 3) html += `<div class="ical-more-btn" onclick="event.stopPropagation();icalSetView('day');icalCurrentDate=icalParseDate('${ds}');renderInteractiveCalendar()">+${events.length-3} mais</div>`;
     html += `</div>`;
   });
-  html += `</div>`;
+  html += `</div>`; // close month-body
+  html += `</div>`; // close month-grid
   return html;
 }
 
@@ -6463,6 +6601,9 @@ function onBlocosChange(val) {
   const pct = (val - 1) / (parseInt(range.max) - parseInt(range.min));
   const thumbW = 18;
   bubble.style.left = `calc(${pct * 100}% - ${pct * thumbW - thumbW / 2}px)`;
+  // Persist + propagate to Pomodoro right away
+  try { aplicarConfiguracoes(); } catch(_) {}
+  try { window.PomoApp?.syncFromCronogramaSelect?.(); } catch(_) {}
 }
 
 function onMetodoChange(val) {
@@ -6784,20 +6925,32 @@ function updateRestDayButtons() {}
 // ── Init ──────────────────────────────────────
 (function initConfig() {
   const saved = loadData('study_config');
+  let initBlocos = numBlocosGlobal;
   if (saved) {
     try {
       // loadData already JSON.parses; accept both string-legacy and object-new
       const cfg = (typeof saved === 'string') ? JSON.parse(saved) : saved;
-      const blocos = cfg.blocos || 5;
-      numBlocosGlobal = blocos;
+      initBlocos = cfg.blocos || 5;
+      numBlocosGlobal = initBlocos;
       const sldr = document.getElementById('cfg-blocos');
-      if (sldr) { sldr.value = blocos; onBlocosChange(blocos); }
-      if (cfg.horas !== undefined)    document.getElementById('cfg-horas').value    = cfg.horas;
-      if (cfg.metodo)   { document.getElementById('cfg-metodo').value = cfg.metodo; onMetodoChange(cfg.metodo); }
-      if (cfg.intervalo !== undefined) document.getElementById('cfg-intervalo').value = cfg.intervalo;
+      if (sldr) sldr.value = initBlocos;
+      if (cfg.horas !== undefined && document.getElementById('cfg-horas'))     document.getElementById('cfg-horas').value     = cfg.horas;
+      if (cfg.metodo && document.getElementById('cfg-metodo'))                 document.getElementById('cfg-metodo').value    = cfg.metodo;
+      if (cfg.intervalo !== undefined && document.getElementById('cfg-intervalo')) document.getElementById('cfg-intervalo').value = cfg.intervalo;
+      // After all values are set, update visuals only (no recursive apply)
+      const bubble = document.getElementById('cfg-blocos-val');
+      if (bubble && sldr) {
+        bubble.textContent = initBlocos;
+        const pct = (initBlocos - 1) / (parseInt(sldr.max) - parseInt(sldr.min));
+        const thumbW = 18;
+        bubble.style.left = `calc(${pct * 100}% - ${pct * thumbW - thumbW / 2}px)`;
+      }
+      if (cfg.metodo) {
+        const m = METODOS_POMODORO[cfg.metodo];
+        const desc = document.getElementById('cfg-metodo-desc');
+        if (desc && m) desc.textContent = m.desc || '';
+      }
     } catch(e) { console.warn('initConfig error:', e); }
-  } else {
-    onBlocosChange(numBlocosGlobal);
   }
   aplicarConfiguracoes();
 })();
@@ -7136,15 +7289,21 @@ const PomoApp = (() => {
     const m = Math.floor(seconds / 60), s = seconds % 60;
     return `${String(m).padStart(2,'0')}<span class="pomo-time-sep">:</span>${String(s).padStart(2,'0')}`;
   }
+  function fmtMin(min) {
+    if (min < 60) return `${min}min`;
+    const h = Math.floor(min / 60), m = min % 60;
+    return m === 0 ? `${h}h` : `${h}h ${m}min`;
+  }
   function phaseLabel() {
     if (state.phase === 'study') return state.running ? '⚡ Estudando' : '⚡ Foco · estudo';
     if (state.phase === 'rest') return state.running ? '☕ Descansando' : '☕ Pausa curta';
     return state.running ? '🌙 Descanso longo' : '🌙 Pausa longa';
   }
   function phasePhrase() {
-    if (state.phase === 'study') return 'Bloco de estudo';
-    if (state.phase === 'rest')  return 'Pausa entre blocos';
-    return 'Pausa longa de recuperação';
+    // Always show the current method timing so user sees what they picked
+    const s = fmtMin(state.studyMin);
+    const r = fmtMin(state.restMin);
+    return `Bloco de ${s} · pausa ${r}`;
   }
 
   function render() {
@@ -7506,10 +7665,12 @@ const PomoApp = (() => {
       if (state.preset === 'personalizado') syncFromCronogramaSelect();
     });
     document.getElementById('cfg-horas')?.addEventListener('input', () => {
-      if (state.preset === 'personalizado') syncFromCronogramaSelect();
+      try { aplicarConfiguracoes(); } catch(_) {}
+      syncFromCronogramaSelect();
     });
     document.getElementById('cfg-intervalo')?.addEventListener('input', () => {
-      if (state.preset === 'personalizado') syncFromCronogramaSelect();
+      try { aplicarConfiguracoes(); } catch(_) {}
+      syncFromCronogramaSelect();
     });
   }
 
