@@ -1375,9 +1375,78 @@ section { padding: 0 !important; background: transparent !important; }
 .pomo-phase {
   font-size: 12px;
   color: var(--muted);
-  letter-spacing: .12em;
+  letter-spacing: .08em;
   text-transform: uppercase;
   font-weight: 600;
+  text-align: center;
+  margin: 18px auto 0;
+  max-width: 90%;
+  line-height: 1.45;
+}
+.pomo-main.is-turbo .pomo-phase::after {
+  content: ' ⚡ ' attr(data-speed);
+  color: #fbbf24;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+/* Speed pills */
+.pomo-speed-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.pomo-speed-label {
+  font-size: 11px;
+  color: var(--muted2);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.pomo-speed-pills {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 3px;
+}
+.pomo-speed-pill {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: var(--font-b);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: color .15s, background .15s, box-shadow .2s;
+  letter-spacing: -0.005em;
+  min-width: 36px;
+}
+.pomo-speed-pill:hover { color: var(--text); }
+.pomo-speed-pill.on {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 12px var(--accent-soft);
+}
+.pomo-speed-pill[data-speed="60"].on {
+  background: #fbbf24;
+  color: #1a1a00;
+  box-shadow: 0 0 16px rgba(251,191,36,0.55);
+}
+
+/* Turbo pulse on the ring when speed > 1 */
+.pomo-main.is-turbo .pomo-ring-progress {
+  animation: turbo-glow 1s infinite;
+}
+@keyframes turbo-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--accent-soft)); }
+  50%      { filter: drop-shadow(0 0 16px var(--accent)); }
 }
 
 /* Cycle dots */
@@ -3773,7 +3842,9 @@ html[data-theme^="light-"] #daily-island {
   .pomo-shell { gap: 14px; }
   .pomo-main { padding: 24px 14px 18px; border-radius: 20px; }
   .pomo-ring-wrap { max-width: 260px; margin: 12px auto; }
-  .pomo-time { font-size: clamp(42px, 11vw, 56px); }
+  .pomo-time { font-size: clamp(48px, 13vw, 64px); }
+  .pomo-time-inner { gap: 4px; }
+  .pomo-phase { font-size: 11px; margin-top: 14px; padding: 0 8px; }
   .pomo-controls { gap: 6px; flex-wrap: wrap; justify-content: center; }
   .pomo-btn { padding: 11px 14px; font-size: 12px; min-height: 44px; }
   .pomo-btn-primary { padding: 11px 22px; min-width: 110px; }
@@ -3784,6 +3855,10 @@ html[data-theme^="light-"] #daily-island {
   .pomo-card { padding: 16px; }
   .pomo-shortcuts { font-size: 10px; }
   .pomo-shortcuts kbd { font-size: 9.5px; padding: 1px 4px; }
+  /* Speed pills on mobile */
+  .pomo-speed-row { gap: 8px; margin-top: 12px; }
+  .pomo-speed-label { font-size: 10px; }
+  .pomo-speed-pill { font-size: 10.5px; padding: 6px 9px; min-width: 32px; }
   /* Cycle dots wrap if many */
   .pomo-cycles { flex-wrap: wrap; justify-content: center; gap: 4px; }
   /* State pill text wraps */
@@ -4364,9 +4439,10 @@ html[data-theme^="light-"] #daily-island {
 
         <div class="pomo-time-inner">
           <div class="pomo-time" id="pomo-time">25<span class="pomo-time-sep">:</span>00</div>
-          <div class="pomo-phase" id="pomo-phase">Foco · estudo</div>
         </div>
       </div>
+
+      <div class="pomo-phase" id="pomo-phase">Foco · estudo</div>
 
       <div class="pomo-cycles" id="pomo-cycles" aria-label="Ciclos"></div>
 
@@ -4385,8 +4461,19 @@ html[data-theme^="light-"] #daily-island {
         </button>
       </div>
 
+      <div class="pomo-speed-row">
+        <span class="pomo-speed-label">Velocidade</span>
+        <div class="pomo-speed-pills" role="group" aria-label="Velocidade do timer">
+          <button type="button" class="pomo-speed-pill" data-speed="1"   title="Velocidade normal (S)">1×</button>
+          <button type="button" class="pomo-speed-pill" data-speed="2"   title="2× mais rápido">2×</button>
+          <button type="button" class="pomo-speed-pill" data-speed="5"   title="5× mais rápido">5×</button>
+          <button type="button" class="pomo-speed-pill" data-speed="10"  title="10× mais rápido">10×</button>
+          <button type="button" class="pomo-speed-pill" data-speed="60"  title="Modo turbo — 1 minuto = 1 segundo">⚡60×</button>
+        </div>
+      </div>
+
       <div class="pomo-shortcuts">
-        <kbd>Espaço</kbd> iniciar/pausar · <kbd>R</kbd> reiniciar · <kbd>N</kbd> avançar
+        <kbd>Espaço</kbd> iniciar/pausar · <kbd>R</kbd> reiniciar · <kbd>N</kbd> avançar · <kbd>S</kbd> velocidade
       </div>
     </div>
 
@@ -7405,7 +7492,7 @@ function toggleRestDay(dow) {
 function updateRestDayButtons() {}
 
 // ── Init ──────────────────────────────────────
-(function initConfig() {
+function initConfig() {
   const saved = loadData('study_config');
   let initBlocos = numBlocosGlobal;
   if (saved) {
@@ -7435,7 +7522,11 @@ function updateRestDayButtons() {}
     } catch(e) { console.warn('initConfig error:', e); }
   }
   aplicarConfiguracoes();
-})();
+}
+// Run once on load
+initConfig();
+// Expose globally for refresh after Firebase sync
+window.initConfig = initConfig;
 
 </script>
 
@@ -7705,6 +7796,7 @@ const PomoApp = (() => {
     running: false,
     intervalId: null,
     soundOn: true,
+    speedMul: 1, // 1=normal, 2=2x, 5=5x, 10=10x, 60=60x (turbo)
     statsToday: { sessionsCompleted: 0, minutesStudied: 0, lastDate: '' },
   };
 
@@ -7816,7 +7908,10 @@ const PomoApp = (() => {
     const pill = document.getElementById('pomo-state-text');
     if (pill) pill.textContent = phaseLabel();
     const phasePill = document.getElementById('pomo-phase');
-    if (phasePill) phasePill.textContent = phasePhrase();
+    if (phasePill) {
+      phasePill.textContent = phasePhrase();
+      phasePill.setAttribute('data-speed', state.speedMul + '×');
+    }
 
     // Ring progress (circumference: 2*pi*r). We use r=115 => C ≈ 722.57
     const ring = document.getElementById('pomo-ring-progress');
@@ -7905,6 +8000,13 @@ const PomoApp = (() => {
     if (t1) {
       t1.checked = !!state.soundOn;
     }
+
+    // Speed pills
+    document.querySelectorAll('.pomo-speed-pill').forEach(b => {
+      b.classList.toggle('on', parseInt(b.dataset.speed) === state.speedMul);
+    });
+    // Add a turbo indicator class to main if speed > 1
+    if (main) main.classList.toggle('is-turbo', state.speedMul > 1);
   }
 
   // ─── Logic ───
@@ -7936,7 +8038,9 @@ const PomoApp = (() => {
 
   function tick() {
     if (!state.running) return;
-    state.secondsLeft -= 1;
+    // Decrement by speedMul seconds per real second (speedMul=1 → normal)
+    const mul = Math.max(1, state.speedMul | 0);
+    state.secondsLeft -= mul;
     if (state.secondsLeft <= 0) {
       state.secondsLeft = 0;
       render();
@@ -7951,6 +8055,7 @@ const PomoApp = (() => {
     state.running = true;
     // try to wake audio
     try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume?.(); } catch(_) {}
+    if (state.intervalId) { clearInterval(state.intervalId); }
     state.intervalId = setInterval(tick, 1000);
     render();
   }
@@ -7960,6 +8065,19 @@ const PomoApp = (() => {
     render();
   }
   function toggle() { state.running ? pause() : start(); }
+
+  function setSpeed(mul) {
+    const allowed = [1, 2, 5, 10, 60];
+    mul = parseInt(mul) || 1;
+    if (!allowed.includes(mul)) mul = 1;
+    state.speedMul = mul;
+    render();
+  }
+  function cycleSpeed() {
+    const allowed = [1, 2, 5, 10, 60];
+    const i = allowed.indexOf(state.speedMul);
+    setSpeed(allowed[(i + 1) % allowed.length]);
+  }
 
   function reset() {
     pause();
@@ -8139,6 +8257,11 @@ const PomoApp = (() => {
       save();
     });
 
+    // Speed pills
+    document.querySelectorAll('.pomo-speed-pill').forEach(b => {
+      b.addEventListener('click', () => setSpeed(parseInt(b.dataset.speed)));
+    });
+
     // Keyboard shortcuts when pomodoro screen is active
     document.addEventListener('keydown', (e) => {
       const isPomoActive = document.getElementById('screen-pomodoro')?.classList.contains('active');
@@ -8147,6 +8270,7 @@ const PomoApp = (() => {
       if (e.code === 'Space') { e.preventDefault(); toggle(); }
       else if (e.code === 'KeyR') { reset(); }
       else if (e.code === 'KeyN') { next(); }
+      else if (e.code === 'KeyS') { cycleSpeed(); }
     });
 
     // Hook to cronograma config select (mirror selection)
