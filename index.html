@@ -3269,43 +3269,149 @@ html[data-theme^="light-"] .ical-day-cell:nth-child(7n) {
   background: rgba(6,6,16,0.85);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   align-items: center; justify-content: center; padding: 24px;
+  overflow-y: auto;
 }
-#ical-modal-overlay.show { display: flex; }
+#ical-modal-overlay.show,
+#ical-modal-overlay.open { display: flex; }
 .ical-modal-box {
   background: var(--surface);
   border: 1px solid var(--border2);
   border-radius: 22px;
   padding: 32px;
   width: 100%; max-width: 480px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--accent-soft);
   position: relative;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
-.ical-modal-title { font-family: var(--font-d); font-size: 22px; font-weight: 700; margin-bottom: 22px; }
+.ical-modal-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.ical-modal-close:hover { color: var(--text); background: var(--surface3); border-color: var(--border2); }
+.ical-modal-title {
+  font-family: var(--font-d);
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 36px 20px 0;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
 .ical-form-row { margin-bottom: 16px; }
-.ical-form-row label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: .04em; text-transform: uppercase; font-weight: 500; }
-.ical-form-row input, .ical-form-row select, .ical-form-row textarea {
-  width: 100%; background: var(--bg2); border: 1px solid var(--border2);
-  border-radius: 10px; padding: 11px 14px; color: var(--text);
-  font-family: inherit; font-size: 13px; outline: none;
-  transition: border-color .2s;
+.ical-form-row label {
+  display: block; font-size: 11px;
+  color: var(--muted); margin-bottom: 6px;
+  letter-spacing: .04em; text-transform: uppercase;
+  font-weight: 600;
 }
-.ical-form-row input:focus, .ical-form-row select:focus, .ical-form-row textarea:focus { border-color: var(--accent); }
-.ical-form-row textarea { resize: vertical; min-height: 70px; }
-.ical-modal-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
-.ical-modal-actions-r { display: flex; gap: 10px; }
-.btn-ical-save {
-  padding: 11px 22px; background: var(--accent); color: #fff;
-  border: none; border-radius: 10px; font-weight: 600; font-size: 13px;
-  cursor: pointer; transition: all .2s;
+.ical-form-row input,
+.ical-form-row select,
+.ical-form-row textarea {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: var(--font-b);
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+  box-sizing: border-box;
 }
-.btn-ical-save:hover { background: var(--accent2); }
-.btn-ical-cancel, .btn-ical-delete {
-  padding: 11px 18px; background: transparent;
-  border: 1px solid var(--border2); color: var(--muted);
-  border-radius: 10px; font-weight: 500; font-size: 13px;
-  cursor: pointer; transition: all .2s; font-family: inherit;
+.ical-form-row input:focus,
+.ical-form-row select:focus,
+.ical-form-row textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--bg);
 }
-.btn-ical-cancel:hover { color: var(--text); border-color: var(--border3); }
+.ical-form-row textarea {
+  resize: vertical;
+  min-height: 72px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Type picker grid in modal */
+.ical-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.ical-type-btn,
+.ical-type-opt {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 6px;
+  cursor: pointer;
+  text-align: center;
+  font-family: var(--font-b);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
+  display: flex; flex-direction: column;
+  gap: 4px; align-items: center; justify-content: center;
+  line-height: 1.3;
+  min-height: 56px;
+}
+.ical-type-btn:hover,
+.ical-type-opt:hover { border-color: var(--border3); color: var(--text); }
+.ical-type-btn.sel,
+.ical-type-opt.on {
+  box-shadow: 0 0 12px var(--accent-soft);
+}
+.ical-type-opt-icon { font-size: 20px; line-height: 1; }
+
+/* Modal action buttons */
+.ical-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+.ical-btn {
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-family: var(--font-b);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+  border: 1px solid transparent;
+  min-height: 42px;
+}
+.ical-btn-ghost {
+  background: transparent;
+  border-color: var(--border2);
+  color: var(--muted);
+}
+.ical-btn-ghost:hover { color: var(--text); border-color: var(--border3); background: var(--surface2); }
+.ical-btn-save {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 6px 20px var(--accent-soft);
+}
+.ical-btn-save:hover { background: var(--accent2); transform: translateY(-1px); }
+.ical-btn-del {
+  background: transparent;
+  border-color: rgba(248,113,113,.3);
+  color: #f87171;
+  margin-right: auto;
+}
+.ical-btn-del:hover { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.6); }
 .btn-ical-delete { color: var(--red); border-color: rgba(248,113,113,.3); }
 .btn-ical-delete:hover { background: rgba(248,113,113,.08); }
 
@@ -4628,33 +4734,6 @@ html[data-theme^="light-"] #daily-island {
   <div id="cal-content"><!-- rendered by renderInteractiveCalendar() --></div>
 </section>
 
-<!-- MODAL CALENDÁRIO -->
-<div class="ical-modal-overlay" id="ical-modal-overlay">
-  <div class="ical-modal">
-    <div class="ical-modal-title" id="ical-modal-title">Novo evento</div>
-    <div class="ical-form-group">
-      <label class="ical-form-label">Título</label>
-      <input class="ical-form-input" id="ical-inp-title" placeholder="Ex: Revisar geometria...">
-    </div>
-    <div class="ical-form-group">
-      <label class="ical-form-label">Data</label>
-      <input class="ical-form-input" id="ical-inp-date" type="date">
-    </div>
-    <div class="ical-form-group">
-      <label class="ical-form-label">Descrição (opcional)</label>
-      <textarea class="ical-form-textarea" id="ical-inp-desc" placeholder="Detalhes do evento..."></textarea>
-    </div>
-    <div class="ical-form-group">
-      <label class="ical-form-label">Tipo</label>
-      <div class="ical-type-grid" id="ical-type-grid"></div>
-    </div>
-    <div class="ical-modal-actions">
-      <button class="ical-cancel-btn" onclick="icalCloseModal()">Cancelar</button>
-      <button class="ical-del-confirm-btn" id="ical-del-btn" onclick="icalDeleteCurrent()" style="display:none">🗑 Excluir</button>
-      <button class="ical-save-btn" onclick="icalSaveEvent()">Salvar</button>
-    </div>
-  </div>
-</div>
 
 </div>
 <div class="screen" id="screen-tecnicas">
@@ -4797,6 +4876,35 @@ html[data-theme^="light-"] #daily-island {
     <div class="pomo-finish-sub" id="pomo-finish-sub">Hora de descansar.</div>
   </div>
   <button class="pomo-finish-close" onclick="document.getElementById('pomo-finish-toast').classList.remove('show')" aria-label="Fechar">✕</button>
+</div>
+
+<!-- CALENDAR EVENT MODAL (global, floating) -->
+<div id="ical-modal-overlay">
+  <div class="ical-modal-box">
+    <button class="ical-modal-close" onclick="icalCloseModal()" aria-label="Fechar">✕</button>
+    <div class="ical-modal-title" id="ical-modal-title">Novo evento</div>
+    <div class="ical-form-row">
+      <label>Título</label>
+      <input id="ical-inp-title" placeholder="Ex: Revisar geometria…" autocomplete="off">
+    </div>
+    <div class="ical-form-row">
+      <label>Data</label>
+      <input id="ical-inp-date" type="date">
+    </div>
+    <div class="ical-form-row">
+      <label>Descrição (opcional)</label>
+      <textarea id="ical-inp-desc" placeholder="Detalhes do evento…"></textarea>
+    </div>
+    <div class="ical-form-row">
+      <label>Tipo</label>
+      <div class="ical-type-grid" id="ical-type-grid"></div>
+    </div>
+    <div class="ical-modal-actions">
+      <button class="ical-btn ical-btn-ghost" onclick="icalCloseModal()">Cancelar</button>
+      <button class="ical-btn ical-btn-del" id="ical-del-btn" onclick="icalDeleteCurrent()" style="display:none">🗑 Excluir</button>
+      <button class="ical-btn ical-btn-save" onclick="icalSaveEvent()">Salvar</button>
+    </div>
+  </div>
 </div>
 
 
@@ -6422,7 +6530,9 @@ function icalSaveDone(done) { saveData('ical_done', done); }
 
 function icalGetAllEvents() {
   const user = icalLoad();
-  return [...ICAL_BASE_EVENTS, ...user];
+  const overrides = icalLoadOverrides();
+  const base = ICAL_BASE_EVENTS.filter(e => !(overrides[e.id] && overrides[e.id].hidden));
+  return [...base, ...user];
 }
 
 function icalEventsForDate(dateStr) {
@@ -6761,23 +6871,147 @@ function icalDayClick(ds, e) {
 function icalInitDragDrop() {}
 function icalDragStart(e, id) {
   icalDragId = id;
-  e.dataTransfer.effectAllowed = 'move';
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', id); } catch(_) {}
+  }
   e.target.classList.add('dragging-chip');
 }
 function icalDrop(e, dateStr) {
   e.preventDefault();
-  e.currentTarget.classList.remove('drag-over-cell');
-  if (!icalDragId) return;
-  // Only allow moving user events
+  if (e.currentTarget && e.currentTarget.classList) e.currentTarget.classList.remove('drag-over-cell');
+  // Try to read id from dataTransfer too (some browsers)
+  let id = icalDragId;
+  if (!id && e.dataTransfer) {
+    try { id = e.dataTransfer.getData('text/plain'); } catch(_) {}
+  }
+  if (!id) return;
+
+  const all = icalGetAllEvents();
+  const ev = all.find(x => x.id === id);
+  if (!ev) { icalDragId = null; return; }
+  if (ev.date === dateStr) { icalDragId = null; return; } // same day, no-op
+
   const users = icalLoad();
-  const idx = users.findIndex(ev => ev.id === icalDragId);
-  if (idx >= 0) {
-    users[idx] = { ...users[idx], date: dateStr };
+  const userIdx = users.findIndex(u => u.id === id);
+
+  if (userIdx >= 0) {
+    // Move user event
+    users[userIdx] = { ...users[userIdx], date: dateStr };
+    icalSave(users);
+  } else {
+    // Base event → store an override so it appears on the new date
+    // We add a user-event copy and mark the original as "hidden" via overrides
+    const overrides = icalLoadOverrides();
+    overrides[id] = { hidden: true };
+    icalSaveOverrides(overrides);
+    // Push a user copy at the new date
+    users.push({
+      id: 'usr_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      title: ev.title,
+      date: dateStr,
+      type: ev.type,
+      desc: ev.desc || '',
+      _fromBase: id,
+    });
     icalSave(users);
   }
   icalDragId = null;
   renderInteractiveCalendar();
 }
+
+// Overrides storage (so base events can be moved/hidden)
+function icalLoadOverrides() {
+  try { const v = localStorage.getItem('fuvest27_ical_overrides'); return v ? JSON.parse(v) : {}; } catch(_) { return {}; }
+}
+function icalSaveOverrides(map) {
+  try { localStorage.setItem('fuvest27_ical_overrides', JSON.stringify(map)); } catch(_) {}
+}
+
+// ── Touch drag (for mobile) ──
+// HTML5 drag-drop doesn't work on touch screens. We polyfill with Pointer Events.
+(function setupTouchDrag(){
+  let dragGhost = null;
+  let touchDragId = null;
+  let lastDropTarget = null;
+
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'touch') return;
+    const chip = e.target.closest('.ical-chip, .ical-week-event');
+    if (!chip || !chip.getAttribute('draggable')) return;
+    // Extract id from inline ondragstart attr
+    const ds = chip.getAttribute('ondragstart') || '';
+    const m = ds.match(/icalDragStart\(event,\s*'([^']+)'\)/);
+    if (!m) return;
+    touchDragId = m[1];
+    icalDragId = touchDragId;
+
+    // Create ghost
+    const rect = chip.getBoundingClientRect();
+    dragGhost = chip.cloneNode(true);
+    dragGhost.style.cssText = `
+      position: fixed; top: ${rect.top}px; left: ${rect.left}px;
+      width: ${rect.width}px; pointer-events: none;
+      z-index: 10000; opacity: .92; transform: scale(1.08);
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      transition: none;`;
+    document.body.appendChild(dragGhost);
+    chip.style.opacity = '.35';
+    chip._origOpacity = true;
+    // Prevent scroll while dragging
+    document.body.style.touchAction = 'none';
+  }, { passive: true });
+
+  document.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'touch' || !dragGhost) return;
+    e.preventDefault();
+    const rect = dragGhost.getBoundingClientRect();
+    dragGhost.style.left = (e.clientX - rect.width/2) + 'px';
+    dragGhost.style.top  = (e.clientY - rect.height/2) + 'px';
+    // Find drop target under finger
+    dragGhost.style.display = 'none';
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    dragGhost.style.display = '';
+    const cell = el && el.closest && el.closest('[ondrop]');
+    if (lastDropTarget && lastDropTarget !== cell) lastDropTarget.classList.remove('drag-over-cell');
+    if (cell) cell.classList.add('drag-over-cell');
+    lastDropTarget = cell;
+  }, { passive: false });
+
+  document.addEventListener('pointerup', (e) => {
+    if (e.pointerType !== 'touch') return;
+    if (!dragGhost) return;
+    document.body.style.touchAction = '';
+    // Find drop target
+    dragGhost.style.display = 'none';
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    dragGhost.remove();
+    dragGhost = null;
+    const cell = el && el.closest && el.closest('[ondrop]');
+    if (lastDropTarget) lastDropTarget.classList.remove('drag-over-cell');
+    lastDropTarget = null;
+    if (cell && touchDragId) {
+      // Extract date string from onclick attr (icalDayClick('YYYY-MM-DD',event))
+      const onclick = cell.getAttribute('onclick') || cell.getAttribute('ondrop') || '';
+      const md = onclick.match(/'(\d{4}-\d{2}-\d{2})'/);
+      if (md) {
+        icalDragId = touchDragId;
+        const fakeEvt = { preventDefault: () => {}, currentTarget: cell };
+        icalDrop(fakeEvt, md[1]);
+      }
+    }
+    // Restore opacity on chips
+    document.querySelectorAll('.ical-chip[style*="opacity"]').forEach(c => c.style.opacity = '');
+    touchDragId = null;
+    icalDragId = null;
+  });
+  document.addEventListener('pointercancel', () => {
+    if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+    document.body.style.touchAction = '';
+    if (lastDropTarget) lastDropTarget.classList.remove('drag-over-cell');
+    lastDropTarget = null; touchDragId = null; icalDragId = null;
+  });
+})();
 
 // Override old renderCalendar to use new system
 function renderCalendar() { renderInteractiveCalendar(); }
@@ -7970,24 +8204,115 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function logoutGoogle() {
-    auth.signOut();
+    // Save one last time before signing out
+    const u = auth.currentUser;
+    if (u) salvarTudo(u.uid).finally(() => auth.signOut());
+    else auth.signOut();
   }
 
-  async function salvarProgresso(uid) {
-    const dados = localStorage.getItem('progresso_fuvest');
-    if (!dados) return;
+  // All localStorage keys that should sync across devices
+  const SYNC_KEYS = [
+    'fuvest27_study_config',
+    'fuvest27_day_modes',
+    'fuvest27_rest_days',
+    'fuvest27_num_blocos',
+    'fuvest27_ical_events_user',
+    'fuvest27_ical_overrides',
+    'fuvest27_ical_done',
+    'fuvest27_ical_filters',
+    'fuvest27_pomo_state',
+    'fuvest27_pomo_stats',
+    'fuvest27_completed_topics',
+    'fuvest27_quiz_answered',
+    'fuvest27_quiz_correct',
+    'fuvest27_island_closed',
+    'fuvest27_theme',
+    'progresso_fuvest', // legacy key
+  ];
+
+  function snapshotLocalData() {
+    const data = {};
+    SYNC_KEYS.forEach(k => {
+      try {
+        const v = localStorage.getItem(k);
+        if (v !== null) data[k] = v;
+      } catch(_) {}
+    });
+    return data;
+  }
+
+  async function salvarTudo(uid) {
     try {
-      await db.collection('usuarios').doc(uid).set({ progresso: dados }, { merge: true });
-    } catch(e) { console.error(e); }
+      const data = snapshotLocalData();
+      await db.collection('usuarios').doc(uid).set({
+        data,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+    } catch(e) { console.error('Save error:', e); }
   }
 
-  async function carregarProgresso(uid) {
+  async function carregarTudo(uid) {
     try {
       const snap = await db.collection('usuarios').doc(uid).get();
-      if (snap.exists && snap.data().progresso) {
-        localStorage.setItem('progresso_fuvest', snap.data().progresso);
+      if (!snap.exists) return false;
+      const doc = snap.data();
+      // New schema: { data: {...} }
+      if (doc.data && typeof doc.data === 'object') {
+        Object.entries(doc.data).forEach(([k, v]) => {
+          if (SYNC_KEYS.includes(k) && typeof v === 'string') {
+            try { localStorage.setItem(k, v); } catch(_) {}
+          }
+        });
+        return true;
       }
-    } catch(e) { console.error(e); }
+      // Legacy: single 'progresso' field
+      if (doc.progresso) {
+        try { localStorage.setItem('progresso_fuvest', doc.progresso); } catch(_) {}
+        return true;
+      }
+      return false;
+    } catch(e) { console.error('Load error:', e); return false; }
+  }
+
+  // Backwards compat
+  async function salvarProgresso(uid) { return salvarTudo(uid); }
+  async function carregarProgresso(uid) { return carregarTudo(uid); }
+
+  // Re-render affected screens after loading cloud data
+  function refreshAllRenders() {
+    try { if (typeof renderProgGrid === 'function') renderProgGrid(); } catch(_) {}
+    try { if (typeof renderWeekTable === 'function') renderWeekTable(); } catch(_) {}
+    try { if (typeof renderInteractiveCalendar === 'function') renderInteractiveCalendar(); } catch(_) {}
+    try { if (typeof renderQuiz === 'function') renderQuiz(); } catch(_) {}
+    try { if (typeof initConfig === 'function') initConfig(); } catch(_) {}
+    try { if (typeof updateDailyIsland === 'function') updateDailyIsland(); } catch(_) {}
+    try { if (window.PomoApp && typeof PomoApp.init === 'function') PomoApp.init(); } catch(_) {}
+    // Restore theme
+    try {
+      const t = localStorage.getItem('fuvest27_theme');
+      if (t && typeof applyTheme === 'function') applyTheme(t);
+    } catch(_) {}
+  }
+
+  let saveTimer = null;
+  function scheduleSave(uid) {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => salvarTudo(uid), 1500);
+  }
+
+  // Listen for localStorage changes to auto-save when logged in
+  function attachAutoSync(uid) {
+    // Patch localStorage.setItem so any save triggers a scheduled cloud sync
+    const orig = localStorage.setItem.bind(localStorage);
+    if (localStorage._fuvestPatched) return;
+    localStorage._fuvestPatched = true;
+    localStorage.setItem = function(k, v) {
+      orig(k, v);
+      if (SYNC_KEYS.includes(k)) {
+        const cur = auth.currentUser;
+        if (cur) scheduleSave(cur.uid);
+      }
+    };
   }
 
   auth.onAuthStateChanged(async (user) => {
@@ -7998,15 +8323,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!overlay) return;
     if (user) {
       overlay.classList.add('hidden');
-      navUser.style.display = 'flex';
-      navAvatar.src = user.photoURL || '';
-      navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
-      await carregarProgresso(user.uid);
-      setInterval(() => salvarProgresso(user.uid), 30000);
-      window.addEventListener('beforeunload', () => salvarProgresso(user.uid));
+      if (navUser) navUser.style.display = 'flex';
+      if (navAvatar) navAvatar.src = user.photoURL || '';
+      if (navName) navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
+      const loaded = await carregarTudo(user.uid);
+      if (loaded) refreshAllRenders();
+      attachAutoSync(user.uid);
+      // Periodic safety save every 60s
+      setInterval(() => salvarTudo(user.uid), 60000);
+      window.addEventListener('beforeunload', () => salvarTudo(user.uid));
     } else {
       overlay.classList.remove('hidden');
-      navUser.style.display = 'none';
+      if (navUser) navUser.style.display = 'none';
     }
   });
 
