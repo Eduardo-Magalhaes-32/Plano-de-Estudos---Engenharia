@@ -7711,20 +7711,34 @@ const PomoApp = (() => {
   // ─── Persistence ───
   function save() {
     try {
-      localStorage.setItem('pomo_state', JSON.stringify({
+      localStorage.setItem('fuvest27_pomo_state', JSON.stringify({
         preset: state.preset,
         studyMin: state.studyMin, restMin: state.restMin,
         longRestMin: state.longRestMin, cyclesBeforeLong: state.cyclesBeforeLong,
         cyclesPlanned: state.cyclesPlanned, soundOn: state.soundOn,
       }));
-      localStorage.setItem('pomo_stats', JSON.stringify(state.statsToday));
+      localStorage.setItem('fuvest27_pomo_stats', JSON.stringify(state.statsToday));
     } catch(_) {}
   }
   function load() {
     try {
-      const s = JSON.parse(localStorage.getItem('pomo_state') || 'null');
+      // Migrate from old unprefixed keys (one-time)
+      try {
+        const oldState = localStorage.getItem('pomo_state');
+        if (oldState !== null && localStorage.getItem('fuvest27_pomo_state') === null) {
+          localStorage.setItem('fuvest27_pomo_state', oldState);
+          localStorage.removeItem('pomo_state');
+        }
+        const oldStats = localStorage.getItem('pomo_stats');
+        if (oldStats !== null && localStorage.getItem('fuvest27_pomo_stats') === null) {
+          localStorage.setItem('fuvest27_pomo_stats', oldStats);
+          localStorage.removeItem('pomo_stats');
+        }
+      } catch(_) {}
+
+      const s = JSON.parse(localStorage.getItem('fuvest27_pomo_state') || 'null');
       if (s) Object.assign(state, s);
-      const st = JSON.parse(localStorage.getItem('pomo_stats') || 'null');
+      const st = JSON.parse(localStorage.getItem('fuvest27_pomo_stats') || 'null');
       if (st) state.statsToday = st;
       // Reset stats if new day
       const today = new Date().toISOString().slice(0,10);
@@ -8194,6 +8208,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const db = firebase.firestore();
   const provider = new firebase.auth.GoogleAuthProvider();
 
+  // Per-device id (so this device can ignore its own writes coming back from the listener)
+  let DEVICE_ID;
+  try {
+    DEVICE_ID = localStorage.getItem('fuvest27_device_id');
+    if (!DEVICE_ID) {
+      DEVICE_ID = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('fuvest27_device_id', DEVICE_ID);
+    }
+  } catch(_) { DEVICE_ID = 'dev_anon_' + Math.random().toString(36).slice(2, 10); }
+
   document.getElementById('auth-overlay').querySelector('button.btn-google').onclick = async () => {
     try {
       await auth.signInWithPopup(provider);
@@ -8203,14 +8227,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  function logoutGoogle() {
-    // Save one last time before signing out
-    const u = auth.currentUser;
-    if (u) salvarTudo(u.uid).finally(() => auth.signOut());
-    else auth.signOut();
-  }
-
-  // All localStorage keys that should sync across devices
+  // Keys that should sync across devices, grouped by merge strategy.
+  // PER-KEY storage (each key is its own field with its own timestamp).
+  // This avoids "last-write-wins on the whole document" — each device only
+  // overwrites the keys IT actually changed.
   const SYNC_KEYS = [
     'fuvest27_study_config',
     'fuvest27_day_modes',
@@ -8220,15 +8240,29 @@ document.addEventListener('DOMContentLoaded', () => {
     'fuvest27_ical_overrides',
     'fuvest27_ical_done',
     'fuvest27_ical_filters',
-    'fuvest27_pomo_state',
-    'fuvest27_pomo_stats',
     'fuvest27_completed_topics',
     'fuvest27_quiz_answered',
     'fuvest27_quiz_correct',
-    'fuvest27_island_closed',
     'fuvest27_theme',
-    'progresso_fuvest', // legacy key
+    'progresso_fuvest', // legacy
   ];
+
+  // Local-only keys: NEVER synced to cloud (per-device state)
+  const LOCAL_ONLY_KEYS = new Set([
+    'fuvest27_pomo_state',     // Pomodoro timer state is per-device
+    'fuvest27_pomo_stats',     // Stats are per-device too
+    'fuvest27_device_id',
+    'fuvest27_sidebar_collapsed',
+    'fuvest27_popup_visible',
+    'fuvest27_island_closed',  // Floating island closed state is UI preference per-device
+  ]);
+
+  // Suppress patch reentry while loading from cloud
+  let applyingRemote = false;
+  // Track last-known cloud timestamp per key so we don't overwrite newer remote data
+  const localTimestamps = {};
+
+  function nowMs() { return Date.now(); }
 
   function snapshotLocalData() {
     const data = {};
@@ -8241,44 +8275,154 @@ document.addEventListener('DOMContentLoaded', () => {
     return data;
   }
 
-  async function salvarTudo(uid) {
+  // Save ONLY the keys that changed since last sync (dirty set)
+  const dirtyKeys = new Set();
+
+  async function flushDirty(uid) {
+    if (!uid || dirtyKeys.size === 0) return;
+    const ts = nowMs();
+    // Build a properly NESTED object so Firestore {merge:true} merges per-key,
+    // not by creating literal dotted field names.
+    const keysToWrite = {};
+    const keysToDelete = [];
+    dirtyKeys.forEach(k => {
+      try {
+        const v = localStorage.getItem(k);
+        if (v !== null) {
+          keysToWrite[k] = { val: v, ts, dev: DEVICE_ID };
+          localTimestamps[k] = ts;
+        } else {
+          keysToDelete.push(k);
+          delete localTimestamps[k];
+        }
+      } catch(_) {}
+    });
+    dirtyKeys.clear();
+    const docRef = db.collection('usuarios').doc(uid);
     try {
-      const data = snapshotLocalData();
-      await db.collection('usuarios').doc(uid).set({
-        data,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      }, { merge: true });
+      // 1) Merge upserted keys (nested)
+      if (Object.keys(keysToWrite).length > 0) {
+        await docRef.set({
+          keys: keysToWrite,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastDevice: DEVICE_ID,
+        }, { merge: true });
+      }
+      // 2) Process deletes separately — update() supports dot-path FieldValue.delete()
+      if (keysToDelete.length > 0) {
+        const upd = {};
+        keysToDelete.forEach(k => { upd['keys.' + k] = firebase.firestore.FieldValue.delete(); });
+        upd.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+        upd.lastDevice = DEVICE_ID;
+        await docRef.update(upd);
+      }
     } catch(e) { console.error('Save error:', e); }
   }
 
+  // Initial load: merge cloud → local for each key, keeping the newer one
   async function carregarTudo(uid) {
     try {
       const snap = await db.collection('usuarios').doc(uid).get();
       if (!snap.exists) return false;
-      const doc = snap.data();
-      // New schema: { data: {...} }
-      if (doc.data && typeof doc.data === 'object') {
-        Object.entries(doc.data).forEach(([k, v]) => {
-          if (SYNC_KEYS.includes(k) && typeof v === 'string') {
-            try { localStorage.setItem(k, v); } catch(_) {}
-          }
-        });
+      const doc = snap.data() || {};
+
+      // New schema: { keys: { k: { val, ts, dev } } }
+      const remoteKeys = (doc.keys && typeof doc.keys === 'object') ? doc.keys : null;
+      if (remoteKeys) {
+        applyingRemote = true;
+        try {
+          Object.entries(remoteKeys).forEach(([k, entry]) => {
+            if (!SYNC_KEYS.includes(k)) return;
+            if (!entry || typeof entry !== 'object') return;
+            const val = entry.val;
+            const ts = typeof entry.ts === 'number' ? entry.ts : 0;
+            const localTs = localTimestamps[k] || 0;
+            if (ts >= localTs && typeof val === 'string') {
+              try { localStorage.setItem(k, val); localTimestamps[k] = ts; } catch(_) {}
+            }
+          });
+        } finally { applyingRemote = false; }
         return true;
       }
-      // Legacy: single 'progresso' field
-      if (doc.progresso) {
-        try { localStorage.setItem('progresso_fuvest', doc.progresso); } catch(_) {}
+      // Old schema: { data: { k: v } } — migrate (treat all as ts=0, prefer existing local if any)
+      if (doc.data && typeof doc.data === 'object') {
+        applyingRemote = true;
+        try {
+          Object.entries(doc.data).forEach(([k, v]) => {
+            if (!SYNC_KEYS.includes(k) || typeof v !== 'string') return;
+            // If local already has a value, keep it (treat local as newer)
+            const cur = localStorage.getItem(k);
+            if (cur === null) { try { localStorage.setItem(k, v); } catch(_){} }
+          });
+        } finally { applyingRemote = false; }
+        // Mark all keys dirty so next save migrates to new schema
+        SYNC_KEYS.forEach(k => { if (localStorage.getItem(k) !== null) dirtyKeys.add(k); });
+        return true;
+      }
+      // Legacy single 'progresso' field
+      if (doc.progresso && typeof doc.progresso === 'string') {
+        applyingRemote = true;
+        try { localStorage.setItem('progresso_fuvest', doc.progresso); }
+        catch(_) {}
+        finally { applyingRemote = false; }
         return true;
       }
       return false;
     } catch(e) { console.error('Load error:', e); return false; }
   }
 
+  // Real-time listener: receives changes from OTHER devices while this one is open
+  let unsubListener = null;
+  function startRealtimeListener(uid) {
+    if (unsubListener) { try { unsubListener(); } catch(_){} unsubListener = null; }
+    unsubListener = db.collection('usuarios').doc(uid).onSnapshot((snap) => {
+      if (!snap.exists) return;
+      const doc = snap.data() || {};
+      // Skip if we are the source of this change
+      if (doc.lastDevice === DEVICE_ID) return;
+      const remoteKeys = (doc.keys && typeof doc.keys === 'object') ? doc.keys : null;
+      if (!remoteKeys) return;
+      applyingRemote = true;
+      let touchedAny = false;
+      try {
+        Object.entries(remoteKeys).forEach(([k, entry]) => {
+          if (!SYNC_KEYS.includes(k)) return;
+          if (!entry || typeof entry !== 'object') return;
+          const val = entry.val;
+          const ts = typeof entry.ts === 'number' ? entry.ts : 0;
+          const localTs = localTimestamps[k] || 0;
+          // Only apply if remote is strictly newer
+          if (ts > localTs && typeof val === 'string') {
+            const cur = localStorage.getItem(k);
+            if (cur !== val) {
+              try { localStorage.setItem(k, val); localTimestamps[k] = ts; touchedAny = true; } catch(_) {}
+            }
+          }
+        });
+      } finally { applyingRemote = false; }
+      if (touchedAny) {
+        // Debounce render to avoid thrashing if many keys arrive at once
+        if (window._fuvestRefreshTimer) clearTimeout(window._fuvestRefreshTimer);
+        window._fuvestRefreshTimer = setTimeout(refreshAllRenders, 250);
+      }
+    }, (err) => { console.error('Realtime listener error:', err); });
+  }
+  function stopRealtimeListener() {
+    if (unsubListener) { try { unsubListener(); } catch(_){} unsubListener = null; }
+  }
+
   // Backwards compat
+  async function salvarTudo(uid) {
+    // Force-mark all keys as dirty (used by manual save / logout / unload)
+    SYNC_KEYS.forEach(k => {
+      try { if (localStorage.getItem(k) !== null) dirtyKeys.add(k); } catch(_){}
+    });
+    return flushDirty(uid);
+  }
   async function salvarProgresso(uid) { return salvarTudo(uid); }
   async function carregarProgresso(uid) { return carregarTudo(uid); }
 
-  // Re-render affected screens after loading cloud data
+  // Re-render affected screens after loading/receiving cloud data
   function refreshAllRenders() {
     try { if (typeof renderProgGrid === 'function') renderProgGrid(); } catch(_) {}
     try { if (typeof renderWeekTable === 'function') renderWeekTable(); } catch(_) {}
@@ -8286,33 +8430,78 @@ document.addEventListener('DOMContentLoaded', () => {
     try { if (typeof renderQuiz === 'function') renderQuiz(); } catch(_) {}
     try { if (typeof initConfig === 'function') initConfig(); } catch(_) {}
     try { if (typeof updateDailyIsland === 'function') updateDailyIsland(); } catch(_) {}
-    try { if (window.PomoApp && typeof PomoApp.init === 'function') PomoApp.init(); } catch(_) {}
-    // Restore theme
+    try {
+      if (window.PomoApp && typeof PomoApp.syncFromCronogramaSelect === 'function') {
+        PomoApp.syncFromCronogramaSelect();
+      }
+    } catch(_) {}
     try {
       const t = localStorage.getItem('fuvest27_theme');
       if (t && typeof applyTheme === 'function') applyTheme(t);
     } catch(_) {}
   }
 
+  // Debounced flush of dirty changes
   let saveTimer = null;
   function scheduleSave(uid) {
     if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => salvarTudo(uid), 1500);
+    saveTimer = setTimeout(() => flushDirty(uid), 1500);
   }
 
-  // Listen for localStorage changes to auto-save when logged in
-  function attachAutoSync(uid) {
-    // Patch localStorage.setItem so any save triggers a scheduled cloud sync
-    const orig = localStorage.setItem.bind(localStorage);
+  // Patch localStorage.setItem so writes mark keys dirty and schedule upload
+  function attachAutoSync() {
     if (localStorage._fuvestPatched) return;
     localStorage._fuvestPatched = true;
+    const orig = localStorage.setItem.bind(localStorage);
     localStorage.setItem = function(k, v) {
       orig(k, v);
-      if (SYNC_KEYS.includes(k)) {
-        const cur = auth.currentUser;
-        if (cur) scheduleSave(cur.uid);
-      }
+      // If this write came from a cloud-load, don't echo back to the cloud
+      if (applyingRemote) return;
+      if (LOCAL_ONLY_KEYS.has(k)) return;
+      if (!SYNC_KEYS.includes(k)) return;
+      dirtyKeys.add(k);
+      localTimestamps[k] = nowMs();
+      const cur = auth.currentUser;
+      if (cur) scheduleSave(cur.uid);
     };
+    const origRemove = localStorage.removeItem.bind(localStorage);
+    localStorage.removeItem = function(k) {
+      origRemove(k);
+      if (applyingRemote) return;
+      if (!SYNC_KEYS.includes(k)) return;
+      dirtyKeys.add(k);
+      delete localTimestamps[k];
+      const cur = auth.currentUser;
+      if (cur) scheduleSave(cur.uid);
+    };
+  }
+
+  // Attach beforeunload only once
+  let beforeUnloadAttached = false;
+  function attachBeforeUnload() {
+    if (beforeUnloadAttached) return;
+    beforeUnloadAttached = true;
+    window.addEventListener('beforeunload', () => {
+      const cur = auth.currentUser;
+      if (cur) flushDirty(cur.uid);
+    });
+  }
+
+  // Patch happens BEFORE any data loading so we don't miss writes
+  attachAutoSync();
+  attachBeforeUnload();
+
+  let periodicSave = null;
+
+  function logoutGoogle() {
+    const u = auth.currentUser;
+    const finish = () => {
+      stopRealtimeListener();
+      if (periodicSave) { clearInterval(periodicSave); periodicSave = null; }
+      auth.signOut();
+    };
+    if (u) flushDirty(u.uid).finally(finish);
+    else finish();
   }
 
   auth.onAuthStateChanged(async (user) => {
@@ -8326,15 +8515,38 @@ document.addEventListener('DOMContentLoaded', () => {
       if (navUser) navUser.style.display = 'flex';
       if (navAvatar) navAvatar.src = user.photoURL || '';
       if (navName) navName.textContent = (user.displayName || 'Usuário').split(' ')[0];
+
       const loaded = await carregarTudo(user.uid);
       if (loaded) refreshAllRenders();
-      attachAutoSync(user.uid);
-      // Periodic safety save every 60s
-      setInterval(() => salvarTudo(user.uid), 60000);
-      window.addEventListener('beforeunload', () => salvarTudo(user.uid));
+
+      // First login or empty cloud doc: push all existing local SYNC_KEYS so cloud is seeded
+      if (!loaded) {
+        let seeded = false;
+        SYNC_KEYS.forEach(k => {
+          try {
+            if (localStorage.getItem(k) !== null) {
+              dirtyKeys.add(k);
+              seeded = true;
+            }
+          } catch(_) {}
+        });
+        if (seeded) await flushDirty(user.uid);
+      }
+
+      // Start real-time listener so changes on OTHER devices appear here within ~1s
+      startRealtimeListener(user.uid);
+
+      // Periodic safety save every 60s (only if dirty)
+      if (periodicSave) clearInterval(periodicSave);
+      periodicSave = setInterval(() => { if (dirtyKeys.size > 0) flushDirty(user.uid); }, 60000);
+
+      // If there was already dirty local data before login, flush it now
+      if (dirtyKeys.size > 0) flushDirty(user.uid);
     } else {
       overlay.classList.remove('hidden');
       if (navUser) navUser.style.display = 'none';
+      stopRealtimeListener();
+      if (periodicSave) { clearInterval(periodicSave); periodicSave = null; }
     }
   });
 
