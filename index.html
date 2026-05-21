@@ -444,6 +444,10 @@ html[data-theme^="light-"] .wc { color: var(--text); }
   display: flex; flex-direction: column;
   z-index: 50;
   overflow: hidden;
+  /* iOS Safari fix */
+  -webkit-overflow-scrolling: touch;
+  height: 100vh;
+  height: 100dvh;
 }
 
 /* Logo: clean, no extra "F" mark, no filter glitches */
@@ -3163,13 +3167,98 @@ html[data-theme^="light-"] .ical-day-cell:nth-child(7n) {
 .ical-day-view { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
 .ical-day-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
 .ical-day-big-num { font-family: var(--font-d); font-size: 56px; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -0.04em; }
-.ical-day-name { font-family: var(--font-d); font-size: 22px; font-weight: 700; }
+.ical-day-info { display: flex; flex-direction: column; gap: 2px; }
+.ical-day-name { font-family: var(--font-d); font-size: 22px; font-weight: 700; text-transform: capitalize; }
 .ical-day-month { font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
-.ical-day-events { display: flex; flex-direction: column; gap: 8px; }
-.ical-day-event { padding: 14px 16px; border-radius: 10px; background: var(--surface2); border-left: 3px solid var(--accent); cursor: pointer; transition: all .2s; }
-.ical-day-event:hover { background: var(--surface3); transform: translateX(2px); }
-.ical-day-event-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-.ical-day-event-meta { font-size: 11.5px; color: var(--muted); }
+
+.ical-day-events-list { display: flex; flex-direction: column; gap: 10px; }
+.ical-day-event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 14px;
+  border-radius: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  transition: background .15s;
+}
+.ical-day-event-row:hover { background: var(--surface3); }
+.ical-check-box {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border3);
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  color: var(--accent);
+  transition: all .15s;
+  margin-top: 1px;
+}
+.ical-check-box:hover { border-color: var(--accent); background: var(--accent-soft); }
+.ical-check-box.done { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ical-day-event-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+.ical-day-event-body {
+  flex: 1;
+  min-width: 0;
+}
+.ical-day-event-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.ical-day-event-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.ical-day-event-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.ical-ev-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+  padding: 0;
+}
+.ical-ev-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.ical-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--muted2);
+}
+.ical-empty-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: .5;
+}
+.ical-empty-text {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ical-more-btn { cursor: pointer; }
+
 .ical-empty-day { text-align: center; padding: 60px 20px; color: var(--muted2); font-size: 13px; }
 .ical-empty-day::before { content: '✦'; display: block; font-size: 28px; margin-bottom: 12px; color: var(--accent); opacity: .3; }
 
@@ -3490,6 +3579,7 @@ html[data-theme^="light-"] #daily-island {
   .sidebar {
     transform: translateX(-100%);
     width: 280px !important;
+    max-width: 85vw;
     padding: 22px 16px 18px !important;
     box-shadow: var(--shadow-lg);
   }
@@ -3497,12 +3587,12 @@ html[data-theme^="light-"] #daily-island {
   /* Disable hover-expand on mobile */
   .sidebar:hover { width: 280px !important; padding: 22px 16px 18px !important; }
   .main-content { margin-left: 0 !important; }
-  .menu-toggle { display: flex; }
+  .menu-toggle { display: flex !important; }
 
   /* On mobile, always show full text — no collapsed mode */
   .sidebar .sidebar-logo { justify-content: flex-start !important; padding: 0 4px 18px !important; gap: 8px !important; }
   .sidebar .sb-logo-text { display: inline-block !important; }
-  .sidebar .nav-item { justify-content: flex-start !important; padding: 10px 12px !important; }
+  .sidebar .nav-item { justify-content: flex-start !important; padding: 12px 12px !important; min-height: 44px; }
   .sidebar .nav-item-label,
   .sidebar .nav-item-badge { opacity: 1 !important; max-width: 200px !important; pointer-events: auto !important; }
   .sidebar .nav-group-title { opacity: 1 !important; height: auto !important; padding: 14px 12px 8px !important; pointer-events: auto !important; }
@@ -3510,34 +3600,62 @@ html[data-theme^="light-"] #daily-island {
   .sidebar .sidebar-user { padding: 12px !important; justify-content: flex-start !important; }
   .sidebar .sb-user-info { display: block !important; }
   .sidebar .sb-logout { display: flex !important; }
+  /* Body when drawer is open: prevent scroll bleed */
+  .sidebar.open ~ .sidebar-backdrop { display: block; }
 
-  .topbar { padding: 0 14px; gap: 10px; height: 56px; }
+  /* Topbar — fit hamburger + crumb + theme btn (search becomes icon-only) */
+  .topbar {
+    padding: 0 12px;
+    gap: 8px;
+    height: 56px;
+  }
   :root { --topbar-h: 56px; }
   .crumb-current { font-size: 14px; }
+  .topbar-spacer { flex: 1; }
 
-  #search-input { width: 130px; padding-left: 32px; font-size: 12px; }
-  #search-input:focus { width: 180px; }
-  #search-results { width: 280px; right: 0; max-width: calc(100vw - 30px); }
+  /* Compact search (collapsed) — expands on focus */
+  #search-input {
+    width: 38px;
+    padding: 9px 8px 9px 30px;
+    font-size: 12px;
+  }
+  #search-input:focus {
+    width: 60vw;
+    max-width: 240px;
+    padding-left: 30px;
+  }
+  #search-results {
+    width: 92vw;
+    right: -50px;
+    max-width: calc(100vw - 24px);
+    z-index: 60;
+  }
+  .search-icon { left: 10px; font-size: 12px; }
 
-  .screens-wrap { padding: 18px 16px 100px; }
+  /* Theme button + menu sizing for mobile touch */
+  .theme-btn { width: 36px; height: 36px; flex-shrink: 0; }
+  .theme-menu { right: -8px; min-width: 230px; max-width: calc(100vw - 24px); }
+
+  /* Main padding-bottom big enough for FAB + island */
+  .screens-wrap { padding: 18px 14px 240px; }
 
   /* Hero */
   .home-hero { padding: 32px 22px; border-radius: 22px; }
-  .home-hero-title { font-size: clamp(34px, 9vw, 52px); }
+  .home-hero-title { font-size: clamp(28px, 8vw, 42px); line-height: 1.1; }
   .home-hero-sub { font-size: 14px; }
   .countdown-wrap {
     grid-template-columns: 1fr;
     gap: 10px;
-    margin-top: 28px;
+    margin-top: 26px;
     padding-top: 22px;
   }
   .cd-card-value { font-size: 36px; }
   .cd-card { padding: 14px 16px; }
 
   /* Section titles */
-  .s-title, .screen-title { font-size: clamp(24px, 7vw, 32px); }
-  .s-desc, .screen-sub { font-size: 13.5px; margin-bottom: 18px; }
-  .screen-header { padding-bottom: 14px; margin-bottom: 22px; }
+  .s-title, .screen-title { font-size: clamp(22px, 7vw, 30px); line-height: 1.15; }
+  .s-desc, .screen-sub { font-size: 13.5px; margin-bottom: 18px; line-height: 1.5; }
+  .screen-header { padding-bottom: 14px; margin-bottom: 22px; flex-direction: column; align-items: flex-start; gap: 8px; }
 
   /* Cards */
   .metas-grid, .prog-grid, .edital-grid, .fuvest-grid, .tec-grid {
@@ -3546,22 +3664,53 @@ html[data-theme^="light-"] #daily-island {
   .quotes-grid { grid-template-columns: 1fr; }
 
   /* Pomodoro */
-  .pomo-main { padding: 28px 18px 22px; border-radius: 22px; }
-  .pomo-ring-wrap { max-width: 280px; }
-  .pomo-time { font-size: clamp(44px, 11vw, 56px); }
-  .pomo-controls { gap: 8px; }
-  .pomo-btn { padding: 11px 14px; font-size: 12px; }
+  .pomo-shell { gap: 14px; }
+  .pomo-main { padding: 24px 14px 18px; border-radius: 20px; }
+  .pomo-ring-wrap { max-width: 260px; margin: 12px auto; }
+  .pomo-time { font-size: clamp(42px, 11vw, 56px); }
+  .pomo-controls { gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .pomo-btn { padding: 11px 14px; font-size: 12px; min-height: 44px; }
   .pomo-btn-primary { padding: 11px 22px; min-width: 110px; }
-  .pomo-methods-grid { grid-template-columns: 1fr 1fr; }
-  .pomo-card { padding: 18px; }
+  .pomo-methods-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .pomo-method { padding: 11px 12px; }
+  .pomo-method .pmm-name { font-size: 13px; }
+  .pomo-method .pmm-times { font-size: 10.5px; }
+  .pomo-card { padding: 16px; }
+  .pomo-shortcuts { font-size: 10px; }
+  .pomo-shortcuts kbd { font-size: 9.5px; padding: 1px 4px; }
+  /* Cycle dots wrap if many */
+  .pomo-cycles { flex-wrap: wrap; justify-content: center; gap: 4px; }
+  /* State pill text wraps */
+  .pomo-state-pill { font-size: 11px; padding: 5px 12px; max-width: 100%; }
 
   /* Home quick grid - smaller */
-  .home-quick-grid { grid-template-columns: 1fr; gap: 12px; }
+  .home-quick-grid { grid-template-columns: 1fr; gap: 10px; }
   .quick-card { padding: 18px; }
+
+  /* Cronograma config tabs — horizontal scroll */
+  .cfg-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .cfg-tabs::-webkit-scrollbar { display: none; }
+  .cfg-tab {
+    font-size: 11.5px;
+    padding: 11px 14px;
+    letter-spacing: 0;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    min-height: 44px;
+  }
+  .cfg-tab-panel { padding: 18px 14px; }
+  .cfg-slider-wrap { width: 100%; max-width: 280px; }
+  .cfg-group { width: 100%; }
+  .cfg-input { width: 100%; max-width: 200px; }
 
   /* Cronograma week table - horizontal scroll */
   .week-days, .week-row {
-    grid-template-columns: 50px repeat(7, minmax(82px, 1fr));
+    grid-template-columns: 50px repeat(7, minmax(78px, 1fr));
     gap: 4px;
   }
   .week-table {
@@ -3572,81 +3721,186 @@ html[data-theme^="light-"] #daily-island {
   .wc { min-height: 54px; padding: 7px 5px; font-size: 10.5px; }
   .row-label { font-size: 10px; }
 
-  /* Config tabs */
-  .cfg-tab { font-size: 10.5px; padding: 12px 4px; letter-spacing: 0; }
-  .cfg-tab-panel { padding: 18px 16px; }
-  .cfg-slider-wrap { width: 200px; }
-
-  /* Calendar */
-  .ical-day-cell { min-height: 76px; padding: 5px 4px; }
+  /* Calendar — compact but readable */
+  .ical-day-cell { min-height: 70px; padding: 5px 4px; }
   .ical-day-num { font-size: 11px; }
-  .ical-chip { font-size: 9px; padding: 1px 4px; }
-  .ical-dow-header { font-size: 9.5px; padding: 7px 0; }
-  .ical-toolbar { gap: 8px; }
+  .ical-day-cell.today .ical-day-num { font-size: 12px; }
+  .ical-chip { font-size: 9px; padding: 2px 4px; }
+  .ical-dow-header { font-size: 9.5px; padding: 8px 0; letter-spacing: .04em; }
+  .ical-toolbar { gap: 8px; row-gap: 10px; }
   .ical-month-label { font-size: 16px; flex: 1 1 100%; order: -1; }
   .ical-week-header, .ical-week-body { grid-template-columns: 44px repeat(7, minmax(60px, 1fr)); }
-  .ical-week-wrap { overflow-x: auto; }
+  .ical-week-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .ical-day-big-num { font-size: 44px; }
   .ical-day-name { font-size: 18px; }
   .ical-view-tabs { width: 100%; }
-  .ical-view-tab { flex: 1; padding: 8px 6px; font-size: 12px; }
+  .ical-view-tab { flex: 1; padding: 10px 6px; font-size: 12px; min-height: 44px; }
+  .ical-filters { gap: 5px; }
+  .ical-filter { font-size: 10.5px; padding: 6px 10px; }
+  .ical-nav-btn { width: 38px; height: 38px; }
+  .ical-today-btn, .ical-add-btn { font-size: 11.5px; padding: 8px 12px; min-height: 38px; }
 
-  /* Quiz / provas tabs - already wrap */
-  .quiz-tab, .provas-tab { font-size: 12px; padding: 6px 14px; }
+  /* Day view mobile */
+  .ical-day-view { padding: 18px 14px; border-radius: 16px; }
+  .ical-day-header { gap: 12px; margin-bottom: 18px; }
+  .ical-day-big-num { font-size: 48px; }
+  .ical-day-name { font-size: 18px; }
+  .ical-day-event-row { padding: 12px; gap: 8px; }
+  .ical-day-event-title { font-size: 13px; }
+  .ical-day-event-desc { font-size: 11.5px; }
+  .ical-ev-btn { width: 32px; height: 32px; }
+
+  /* Quiz / provas tabs */
+  .quiz-tabs, .provas-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+  .quiz-tabs::-webkit-scrollbar, .provas-tabs::-webkit-scrollbar { display: none; }
+  .quiz-tab, .provas-tab {
+    font-size: 12px;
+    padding: 8px 14px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    min-height: 36px;
+  }
 
   /* Modals */
-  .modal-box { padding: 24px 20px; border-radius: 18px; max-height: 90vh; }
+  .modal-overlay { padding: 16px 12px; }
+  .modal-box {
+    padding: 22px 18px;
+    border-radius: 18px;
+    max-height: calc(100vh - 32px);
+    width: 100%;
+    margin: auto;
+  }
   .modal-title { font-size: 22px; }
 
-  /* Popup hoje */
-  #popup-hoje { display: none !important; } /* hide on mobile - daily-island already does it */
-  .popup-min-btn { display: none !important; }
-
-  /* Daily island */
-  #daily-island { width: calc(100vw - 24px); border-radius: 18px; bottom: 16px; }
-  .island-inner { padding: 14px 16px; gap: 10px; }
-  .island-img-wrap { width: 54px; height: 54px; border-radius: 12px; }
-  .island-text strong { font-size: 13px; }
-  .island-text p { font-size: 11.5px; max-width: none; }
-  .island-stat-num { font-size: 17px; }
-  .island-stats { gap: 10px; }
-  #island-fab { bottom: 16px; right: 16px; width: 44px; height: 44px; font-size: 18px; }
-
-  /* Motivação */
-  .moti-banner { padding: 36px 24px; border-radius: 20px; }
-  .dias-grid { gap: 24px; }
-  .dias-num { font-size: 36px; }
-
   /* Auth */
-  .auth-box { padding: 38px 26px; border-radius: 22px; }
+  .auth-box { padding: 36px 24px; border-radius: 22px; max-width: 92vw; }
   .auth-logo { font-size: 24px; }
   .auth-subtitle { font-size: 13px; }
+  .btn-google { font-size: 14px; }
+
+  /* Daily island — narrower, shorter on mobile */
+  #daily-island {
+    width: calc(100vw - 20px);
+    max-width: none;
+    border-radius: 18px;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .island-inner { padding: 12px 14px 14px; gap: 8px; }
+  .island-emoji { font-size: 20px; }
+  .island-text h4 { font-size: 13px; }
+  .island-text p { font-size: 11.5px; }
+  .island-close { width: 32px; height: 32px; min-width: 32px; }
+  .island-stats { gap: 12px; padding: 6px 0 2px; }
+  .island-stat-num { font-size: 18px; }
+  .island-stat-label { font-size: 9px; }
+  .island-bar-row { gap: 8px; }
+  .island-review { padding-top: 8px; margin-top: 0; }
+  .island-review-title { font-size: 10.5px; }
+  #island-review-items { font-size: 11.5px; }
+
+  /* FAB — touch-friendly */
+  #island-fab {
+    bottom: 14px; right: 14px;
+    width: 48px; height: 48px;
+    font-size: 19px;
+  }
+
+  /* Motivação */
+  .moti-banner { padding: 32px 22px; border-radius: 20px; }
+  .dias-grid { gap: 20px; grid-template-columns: 1fr 1fr; }
+  .dias-num { font-size: 32px; }
 
   /* Footer */
-  .app-footer { font-size: 11px; gap: 8px; }
+  .app-footer { font-size: 11px; gap: 8px; padding: 18px 12px 24px; }
+  .app-footer-inner { flex-direction: column; gap: 6px; text-align: center; }
 
   /* Pomodoro finish toast */
-  .pomo-finish-toast { top: 16px; left: 12px; right: 12px; padding: 12px 16px; gap: 10px; }
+  .pomo-finish-toast { top: 14px; left: 10px; right: 10px; padding: 12px 14px; gap: 10px; }
   .pomo-finish-icon { width: 36px; height: 36px; font-size: 22px; }
   .pomo-finish-title { font-size: 13px; }
   .pomo-finish-sub { font-size: 11px; }
-
-  /* Theme menu */
-  .theme-menu { right: -8px; min-width: 210px; }
 }
 
-/* Very small */
+/* Very small (≤420px) — phones in portrait */
 @media (max-width: 420px) {
-  .home-hero { padding: 26px 18px; }
-  .home-hero-title { font-size: 32px; }
-  .pomo-ring-wrap { max-width: 240px; }
-  .pomo-methods-grid { grid-template-columns: 1fr; }
+  .screens-wrap { padding: 14px 12px 260px; }
+
+  /* Hero compact */
+  .home-hero { padding: 22px 16px; border-radius: 18px; }
+  .home-hero-title { font-size: clamp(24px, 7.5vw, 32px); }
+  .home-hero-eyebrow { font-size: 10px; }
+  .home-hero-sub { font-size: 13px; }
+  .cd-card-value { font-size: 32px; }
+
+  /* Section titles */
+  .screen-title, .s-title { font-size: clamp(22px, 7vw, 28px); }
+
+  /* Pomodoro */
+  .pomo-ring-wrap { max-width: 220px; margin: 8px auto; }
+  .pomo-time { font-size: clamp(36px, 10vw, 46px); }
+  .pomo-methods-grid { grid-template-columns: 1fr; gap: 6px; }
+  .pomo-method { padding: 10px 12px; flex-direction: row; align-items: center; justify-content: space-between; }
+  .pomo-method .pmm-name { font-size: 12.5px; }
+  .pomo-method .pmm-times { font-size: 11px; }
   .pomo-stats { grid-template-columns: 1fr 1fr; }
-  .crumb-current { font-size: 13px; max-width: 110px; }
-  #search-input { width: 36px; padding: 9px 8px 9px 32px; }
-  #search-input:focus { width: 140px; }
-  .topbar-btn { padding: 8px 10px; }
-  .ical-week-time-slot { height: 56px; }
+  .pomo-stats.pomo-stats-3 { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .pomo-stats.pomo-stats-3 .pomo-stat { padding: 10px 4px; }
+  .pomo-stats.pomo-stats-3 .pomo-stat-value { font-size: 18px; }
+  .pomo-controls { gap: 5px; }
+  .pomo-btn { padding: 10px 10px; font-size: 11.5px; }
+  .pomo-btn-primary { min-width: 90px; padding: 10px 14px; }
+  .pomo-shortcuts { display: none; }
+  .pomo-card { padding: 14px; }
+  .pomo-card-head { gap: 8px; }
+  .pomo-card-head h3 { font-size: 13px; }
+
+  /* Topbar — extra compact */
+  .topbar { padding: 0 10px; gap: 6px; }
+  .crumb-current { font-size: 13px; max-width: 100px; }
+  .crumb-prefix, .crumb-sep { display: none !important; }
+  #search-input { width: 36px; padding-left: 28px; }
+  .search-icon { left: 9px; font-size: 11px; }
+  .theme-btn { width: 34px; height: 34px; }
+  .menu-toggle { width: 36px; height: 36px; }
+
+  /* Cronograma tabs even tighter */
+  .cfg-tab { font-size: 11px; padding: 10px 12px; }
+  .cfg-tab-panel { padding: 16px 12px; }
+
+  /* Calendar mobile */
+  .ical-day-cell { min-height: 60px; padding: 4px 3px; }
+  .ical-day-num { font-size: 10.5px; }
+  .ical-chip { font-size: 8.5px; padding: 1px 3px; }
+  .ical-dow-header { font-size: 9px; padding: 6px 0; }
+  .ical-week-time-slot { height: 52px; }
+
+  /* Daily island — very narrow */
+  #daily-island { bottom: 10px; }
+  .island-inner { padding: 10px 12px 12px; gap: 6px; }
+  .island-emoji { font-size: 18px; }
+  .island-text h4 { font-size: 12.5px; }
+  .island-text p { font-size: 11px; }
+  .island-stats { gap: 10px; }
+  .island-stat-num { font-size: 16px; }
+  #island-fab { bottom: 10px; right: 10px; width: 44px; height: 44px; font-size: 17px; }
+
+  /* Auth */
+  .auth-box { padding: 28px 20px; }
+  .auth-logo { font-size: 22px; }
+
+  /* Theme menu — fit narrow viewport */
+  .theme-menu { right: -4px; min-width: 210px; max-width: calc(100vw - 16px); padding: 12px; }
+  .theme-grid { gap: 6px; }
+  .theme-opt { padding: 8px 6px; }
+  .theme-opt .to-name { font-size: 10.5px; }
 }
 
 /* Print */
