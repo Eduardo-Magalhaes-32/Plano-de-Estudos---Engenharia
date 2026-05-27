@@ -7797,6 +7797,9 @@ const PomoApp = (() => {
     intervalId: null,
     soundOn: true,
     speedMul: 1, // 1=normal, 2=2x, 5=5x, 10=10x, 60=60x (turbo)
+    // Clock-based timing — survives tab switches, throttled intervals, refreshes
+    endsAt: 0,        // wall-clock ms when current phase should end (0 = not scheduled)
+    pausedAt: 0,      // wall-clock ms when paused (used for resume math)
     statsToday: { sessionsCompleted: 0, minutesStudied: 0, lastDate: '' },
   };
 
@@ -7808,6 +7811,14 @@ const PomoApp = (() => {
         studyMin: state.studyMin, restMin: state.restMin,
         longRestMin: state.longRestMin, cyclesBeforeLong: state.cyclesBeforeLong,
         cyclesPlanned: state.cyclesPlanned, soundOn: state.soundOn,
+        // Clock-based timing fields — let the timer survive page reload
+        phase: state.phase, cycle: state.cycle,
+        totalSeconds: state.totalSeconds,
+        secondsLeft: state.secondsLeft,
+        running: state.running,
+        endsAt: state.endsAt,
+        pausedAt: state.pausedAt,
+        speedMul: state.speedMul,
       }));
       localStorage.setItem('fuvest27_pomo_stats', JSON.stringify(state.statsToday));
     } catch(_) {}
@@ -7836,6 +7847,21 @@ const PomoApp = (() => {
       const today = new Date().toISOString().slice(0,10);
       if (state.statsToday.lastDate !== today) {
         state.statsToday = { sessionsCompleted: 0, minutesStudied: 0, lastDate: today };
+      }
+
+      // Reconcile clock-based timer with wall-clock time —
+      // if the page was closed/inactive, secondsLeft should reflect real elapsed time.
+      if (state.running && state.endsAt > 0) {
+        const now = Date.now();
+        const mul = Math.max(1, state.speedMul | 0);
+        // Real ms remaining at speed=mul: (endsAt - now). Scale to "virtual" seconds.
+        const realMsLeft = state.endsAt - now;
+        if (realMsLeft <= 0) {
+          // Phase already ended while page was away — finish it as soon as we're back.
+          state.secondsLeft = 0;
+        } else {
+          state.secondsLeft = Math.ceil(realMsLeft / 1000 * mul);
+        }
       }
     } catch(_) {}
   }
@@ -8036,11 +8062,29 @@ const PomoApp = (() => {
     render();
   }
 
+  // ─── Clock-based timing ─────────────────────
+  // The timer uses wall-clock math: secondsLeft is derived from (endsAt - now()),
+  // not decremented manually. This means:
+  //  - Tab switches/background throttling don't drift the timer
+  //  - Page refresh restores the correct remaining time
+  //  - speedMul multiplies the perceived seconds per real-world second
+  // The interval just drives the visual update — the source of truth is endsAt.
+
+  function recomputeSecondsLeft() {
+    if (state.endsAt <= 0) return;
+    const now = Date.now();
+    const mul = Math.max(1, state.speedMul | 0);
+    const realMsLeft = state.endsAt - now;
+    if (realMsLeft <= 0) {
+      state.secondsLeft = 0;
+    } else {
+      state.secondsLeft = Math.ceil(realMsLeft / 1000 * mul);
+    }
+  }
+
   function tick() {
     if (!state.running) return;
-    // Decrement by speedMul seconds per real second (speedMul=1 → normal)
-    const mul = Math.max(1, state.speedMul | 0);
-    state.secondsLeft -= mul;
+    recomputeSecondsLeft();
     if (state.secondsLeft <= 0) {
       state.secondsLeft = 0;
       render();
@@ -8053,15 +8097,35 @@ const PomoApp = (() => {
   function start() {
     if (state.running) return;
     state.running = true;
+    // Request notification permission silently on first start so we can alert when bg
+    try {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    } catch(_) {}
+    // Compute endsAt from remaining virtual seconds at current speed
+    const mul = Math.max(1, state.speedMul | 0);
+    // If resuming from pause, secondsLeft is the source of truth
+    // If starting fresh, secondsLeft == totalSeconds (set elsewhere)
+    state.endsAt = Date.now() + Math.ceil(state.secondsLeft / mul * 1000);
+    state.pausedAt = 0;
     // try to wake audio
     try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume?.(); } catch(_) {}
     if (state.intervalId) { clearInterval(state.intervalId); }
-    state.intervalId = setInterval(tick, 1000);
+    // Use 250ms interval for smoother visual updates (still cheap)
+    state.intervalId = setInterval(tick, 250);
+    save();
     render();
   }
+
   function pause() {
     state.running = false;
     if (state.intervalId) { clearInterval(state.intervalId); state.intervalId = null; }
+    // Snap secondsLeft to current real value so resume math is correct
+    recomputeSecondsLeft();
+    state.pausedAt = Date.now();
+    state.endsAt = 0; // no active deadline while paused
+    save();
     render();
   }
   function toggle() { state.running ? pause() : start(); }
@@ -8070,7 +8134,15 @@ const PomoApp = (() => {
     const allowed = [1, 2, 5, 10, 60];
     mul = parseInt(mul) || 1;
     if (!allowed.includes(mul)) mul = 1;
-    state.speedMul = mul;
+    // If running, recompute endsAt under new speed so secondsLeft stays consistent
+    if (state.running && state.endsAt > 0) {
+      recomputeSecondsLeft();
+      state.speedMul = mul;
+      state.endsAt = Date.now() + Math.ceil(state.secondsLeft / Math.max(1, mul) * 1000);
+    } else {
+      state.speedMul = mul;
+    }
+    save();
     render();
   }
   function cycleSpeed() {
@@ -8085,6 +8157,9 @@ const PomoApp = (() => {
     state.cycle = 1;
     state.totalSeconds = state.studyMin * 60;
     state.secondsLeft = state.totalSeconds;
+    state.endsAt = 0;
+    state.pausedAt = 0;
+    save();
     render();
   }
 
@@ -8111,6 +8186,12 @@ const PomoApp = (() => {
       burst();
     }
 
+    // Clear timing — next phase will set up its own endsAt when start() is called
+    if (state.intervalId) { clearInterval(state.intervalId); state.intervalId = null; }
+    state.running = false;
+    state.endsAt = 0;
+    state.pausedAt = 0;
+
     if (wasStudy) {
       // Always go to short rest (no long rest)
       state.phase = 'rest';
@@ -8132,10 +8213,7 @@ const PomoApp = (() => {
     // Auto-start the rest, but do not auto-start a new study block (user choice)
     if (wasStudy) {
       // small delay so the toast/animation reads
-      setTimeout(() => { state.running = false; start(); }, 600);
-    } else {
-      state.running = false;
-      render();
+      setTimeout(() => { start(); }, 600);
     }
   }
 
@@ -8163,6 +8241,25 @@ const PomoApp = (() => {
     }
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3800);
+
+    // System notification — alerts even when tab is in background
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const title = kind === 'study' ? 'Bloco de estudo concluído ☕' : 'Pausa encerrada ⚡';
+        const body  = kind === 'study'
+          ? 'Hora da pausa. Levante, beba água, descanse a vista.'
+          : 'De volta ao foco. Comece o próximo bloco quando estiver pronto.';
+        const n = new Notification(title, { body, tag: 'fuvest-pomo', silent: false });
+        setTimeout(() => { try { n.close(); } catch(_){} }, 8000);
+      }
+    } catch(_) {}
+
+    // Also try to update document title temporarily so tab badge updates
+    try {
+      const orig = document.title;
+      document.title = (kind === 'study' ? '☕ Pausa!' : '⚡ Estudo!') + ' — ' + orig;
+      setTimeout(() => { document.title = orig; }, 6000);
+    } catch(_) {}
   }
 
   // ─── Sync with cronograma config ───
@@ -8299,6 +8396,48 @@ const PomoApp = (() => {
     // Sync from cronograma config if it exists
     setTimeout(syncFromCronogramaSelect, 200);
     wire();
+
+    // ─── Tab visibility / focus recovery ──────────────
+    // When the tab becomes visible again after being hidden, the setInterval
+    // may have been throttled or stopped. We:
+    //  1) recompute secondsLeft from wall clock (catches any drift)
+    //  2) if phase already ended while we were away, finish it now
+    //  3) ensure interval is alive for visible ticking
+    function onVisible() {
+      if (state.running) {
+        recomputeSecondsLeft();
+        if (state.secondsLeft <= 0) {
+          state.secondsLeft = 0;
+          render();
+          finishPhase();
+          return;
+        }
+        // Re-arm the interval in case it was killed in background
+        if (state.intervalId) { clearInterval(state.intervalId); }
+        state.intervalId = setInterval(tick, 250);
+        render();
+      }
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) onVisible();
+    });
+    window.addEventListener('focus', onVisible);
+    window.addEventListener('pageshow', onVisible);
+
+    // If the page is reloaded mid-session and the saved state says running,
+    // restart the interval so it ticks visually (endsAt drives the math).
+    if (state.running && state.endsAt > 0) {
+      if (state.endsAt <= Date.now()) {
+        // Phase already finished while page was closed
+        state.secondsLeft = 0;
+        // Defer to next tick so UI is ready
+        setTimeout(() => { render(); finishPhase(); }, 100);
+      } else {
+        if (state.intervalId) clearInterval(state.intervalId);
+        state.intervalId = setInterval(tick, 250);
+      }
+    }
+
     render();
   }
 
